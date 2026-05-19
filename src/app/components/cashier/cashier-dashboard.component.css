@@ -1,0 +1,44 @@
+.placeholder-glow .placeholder {
+  background-color: rgba(255,255,255,0.3);
+  min-height: 2rem;
+}
+
+.progress {
+  height: 25px;
+  margin: 5px 0;
+}
+
+.progress-bar {
+  line-height: 25px;
+  color: white;
+  font-weight: bold;
+}
+
+@media (max-width: 767.98px) {
+  .container {
+    padding: 0.5rem;
+  }
+  
+  .card {
+    margin-bottom: 0.75rem !important;
+  }
+  
+  .row > div {
+    margin-bottom: 0.5rem;
+  }
+  
+  .card .row {
+    gap: 0.5rem !important;
+  }
+  
+  .form-control,
+  .form-select {
+    margin-bottom: 0.375rem;
+  }
+  
+  .col-md-3,
+  .col-md-2,
+  .col-md-1 {
+    margin-bottom: 0.125rem;
+  }
+}

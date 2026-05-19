@@ -1,0 +1,393 @@
+<div class="container mt-4">
+  <h2><i class="fa-solid fa-chart-pie me-1"></i> Tableau de bord - Caisse sociale</h2>
+
+  <div class="row mb-4">
+    <div class="col-md-4">
+      <div class="card text-white bg-success">
+        <div class="card-body">
+          <h5>Total Recettes</h5>
+          <div *ngIf="loading.recettes; else recettesContent">
+            <div class="placeholder-glow">
+              <h2 class="placeholder col-8"></h2>
+            </div>
+            <p class="placeholder-glow">
+              <span class="placeholder col-6"></span>
+            </p>
+          </div>
+          <ng-template #recettesContent>
+            <h2>{{ totalRecettes | spaceNumber }} Ar</h2>
+            <small>Cotisations: {{ totalCotisations | spaceNumber }} Ar</small><br />
+            <small>Autres recettes: {{ totalOtherRevenues | spaceNumber }} Ar</small>
+          </ng-template>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-md-4">
+      <div class="card text-white bg-danger">
+        <div class="card-body">
+          <h5>Total Dépenses</h5>
+          <div *ngIf="loading.depenses; else depensesContent">
+            <div class="placeholder-glow">
+              <h2 class="placeholder col-8"></h2>
+            </div>
+          </div>
+          <ng-template #depensesContent>
+            <h2>{{ totalDepenses | spaceNumber }} Ar</h2>
+          </ng-template>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-md-4">
+      <div class="card text-white" [ngClass]="solde >= 0 ? 'bg-primary' : 'bg-warning'">
+        <div class="card-body">
+          <h5>Solde</h5>
+          <div *ngIf="loading.solde; else soldeContent">
+            <div class="placeholder-glow">
+              <h2 class="placeholder col-8"></h2>
+            </div>
+          </div>
+          <ng-template #soldeContent>
+            <h2>{{ solde | spaceNumber }} Ar</h2>
+          </ng-template>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <ul class="nav nav-tabs mb-3">
+    <li class="nav-item">
+      <button
+        class="nav-link"
+        [class.active]="activeTab === 'depenses'"
+        (click)="switchTab('depenses')"
+      >
+        <i class="fa-solid fa-wallet me-1"></i> Dépenses
+      </button>
+    </li>
+    <li class="nav-item">
+      <button
+        class="nav-link"
+        [class.active]="activeTab === 'recettes'"
+        (click)="switchTab('recettes')"
+      >
+        <i class="fa-solid fa-coins me-1"></i> Autres recettes
+      </button>
+    </li>
+    <li class="nav-item">
+      <button
+        class="nav-link"
+        [class.active]="activeTab === 'graphiques'"
+        (click)="switchTab('graphiques')"
+      >
+        <i class="fa-solid fa-chart-line me-1"></i> Graphiques
+      </button>
+    </li>
+  </ul>
+
+  <div *ngIf="activeTab === 'depenses'">
+    <div class="card mb-3">
+      <div class="card-body">
+        <h5>Ajouter une dépense</h5>
+        <div class="row gy-2">
+          <div class="col-md-2">
+            <input [(ngModel)]="expenseForm.date" type="date" class="form-control" />
+          </div>
+          <div class="col-md-4">
+            <input [(ngModel)]="expenseForm.libelle" placeholder="Libellé" class="form-control" />
+          </div>
+          <div class="col-md-2">
+            <input
+              [(ngModel)]="expenseForm.montant"
+              type="number"
+              placeholder="Montant"
+              class="form-control"
+            />
+          </div>
+          <div class="col-md-3">
+            <select [(ngModel)]="expenseForm.category_id" class="form-control">
+              <option *ngFor="let cat of expenseCategories" [value]="cat.id">{{ cat.name }}</option>
+            </select>
+          </div>
+          <div class="col-md-1">
+            <button
+              (click)="addExpense()"
+              class="btn btn-primary w-100"
+              [disabled]="loading.actions"
+            >
+              <span *ngIf="loading.actions" class="spinner-border spinner-border-sm me-1"></span>
+              <i class="fa fa-plus"></i>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-header bg-dark text-white">
+        <h5 class="mb-0">Liste des dépenses</h5>
+      </div>
+      <div class="card-body p-0">
+        <div *ngIf="loading.depensesListe" class="p-4">
+          <app-loading-indicator message="Chargement des dépenses..."></app-loading-indicator>
+        </div>
+        <div class="table-responsive" *ngIf="!loading.depensesListe">
+          <table class="table table-striped mb-0">
+            <thead>
+              <tr>
+                <th>Date</th>
+                <th>Libellé</th>
+                <th>Catégorie</th>
+                <th class="text-end">Montant</th>
+                <th>Action</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let e of expenses">
+                <td>{{ e.date | date: 'dd/MM/yyyy' }}</td>
+                <td>{{ e.libelle }}</td>
+                <td>{{ getCategoryName(e, 'expense') }}</td>
+                <td class="text-end">{{ e.montant | spaceNumber }} Ar</td>
+                <td>
+                  <button
+                    (click)="deleteExpense(e.id)"
+                    class="btn btn-sm btn-danger"
+                    [disabled]="loading.actions"
+                  >
+                    <i class="fa-solid fa-trash"></i>
+                  </button>
+                </td>
+              </tr>
+              <tr *ngIf="expenses.length === 0">
+                <td colspan="5" class="text-center text-muted py-4">Aucune dépense enregistrée</td>
+              </tr>
+            </tbody>
+            <tfoot *ngIf="expenses.length > 0">
+              <tr class="table-info fw-bold">
+                <td colspan="3" class="text-end">Total :</td>
+                <td class="text-end">{{ totalDepensesListe | spaceNumber }} Ar</td>
+                <td></td>
+              </tr>
+            </tfoot>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div *ngIf="activeTab === 'recettes'">
+    <div class="card mb-3">
+      <div class="card-body">
+        <h5>Ajouter une autre recette</h5>
+        <div class="row gy-2">
+          <div class="col-md-2">
+            <input [(ngModel)]="revenueForm.date" type="date" class="form-control" />
+          </div>
+          <div class="col-md-3">
+            <input [(ngModel)]="revenueForm.libelle" placeholder="Libellé" class="form-control" />
+          </div>
+          <div class="col-md-2">
+            <input
+              [(ngModel)]="revenueForm.montant"
+              type="number"
+              placeholder="Montant"
+              class="form-control"
+            />
+          </div>
+          <div class="col-md-3">
+            <select [(ngModel)]="revenueForm.category_id" class="form-control">
+              <option *ngFor="let cat of revenueCategories" [value]="cat.id">{{ cat.name }}</option>
+            </select>
+          </div>
+          <div class="col-md-2">
+            <button
+              (click)="addRevenue()"
+              class="btn btn-primary w-100"
+              [disabled]="loading.actions"
+            >
+              <span *ngIf="loading.actions" class="spinner-border spinner-border-sm me-1"></span>
+              Ajouter
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-header bg-dark text-white">
+        <h5 class="mb-0">Liste des autres recettes</h5>
+      </div>
+      <div class="card-body p-0">
+        <div *ngIf="loading.recettesListe" class="p-4">
+          <app-loading-indicator message="Chargement des recettes..."></app-loading-indicator>
+        </div>
+        <div class="table-responsive" *ngIf="!loading.recettesListe">
+          <table class="table table-striped mb-0">
+            <thead>
+              <tr>
+                <th>Date</th>
+                <th>Libellé</th>
+                <th>Catégorie</th>
+                <th class="text-end">Montant</th>
+                <th>Action</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let r of revenuesPage">
+                <td>{{ r.date | date: 'dd/MM/yyyy' }}</td>
+                <td>{{ r.libelle }}</td>
+                <td>{{ getCategoryName(r, 'revenue') }}</td>
+                <td class="text-end">{{ r.montant | spaceNumber }} Ar</td>
+                <td>
+                  <button
+                    (click)="deleteRevenue(r.id)"
+                    class="btn btn-sm btn-danger"
+                    [disabled]="loading.actions"
+                  >
+                    <i class="fa-solid fa-trash"></i>
+                  </button>
+                </td>
+              </tr>
+              <tr *ngIf="revenues.length === 0">
+                <td colspan="5" class="text-center text-muted py-4">
+                  Aucune autre recette enregistrée
+                </td>
+              </tr>
+            </tbody>
+            <tfoot *ngIf="revenues.length > 0">
+              <tr class="table-info fw-bold">
+                <td colspan="3" class="text-end">Total :</td>
+                <td class="text-end">{{ totalRecettesListe | spaceNumber }} Ar</td>
+                <td></td>
+              </tr>
+            </tfoot>
+          </table>
+        </div>
+        <div
+          class="d-flex justify-content-between align-items-center p-3"
+          *ngIf="revenueTotalPages > 1"
+        >
+          <div class="text-muted">Page {{ revenueCurrentPage }} / {{ revenueTotalPages }}</div>
+          <nav>
+            <ul class="pagination pagination-sm mb-0">
+              <li class="page-item" [class.disabled]="revenueCurrentPage === 1">
+                <button
+                  class="page-link"
+                  type="button"
+                  (click)="changeRevenuePage(revenueCurrentPage - 1)"
+                >
+                  Précédent
+                </button>
+              </li>
+              <li
+                class="page-item"
+                *ngFor="let page of getRevenuePageNumbers(); let idx = index"
+                [class.active]="revenueCurrentPage === idx + 1"
+              >
+                <button class="page-link" type="button" (click)="changeRevenuePage(idx + 1)">
+                  {{ idx + 1 }}
+                </button>
+              </li>
+              <li class="page-item" [class.disabled]="revenueCurrentPage === revenueTotalPages">
+                <button
+                  class="page-link"
+                  type="button"
+                  (click)="changeRevenuePage(revenueCurrentPage + 1)"
+                >
+                  Suivant
+                </button>
+              </li>
+            </ul>
+          </nav>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div *ngIf="activeTab === 'graphiques'">
+    <div class="row">
+      <div class="col-md-6">
+        <div class="card">
+          <div class="card-header bg-primary text-white">
+            <h5 class="mb-0">
+              <i class="fa-solid fa-chart-pie me-1"></i> Répartition des dépenses par catégorie
+            </h5>
+          </div>
+          <div class="card-body">
+            <div *ngIf="loading.graphiques; else graphiqueDepenses" class="p-4">
+              <app-loading-indicator
+                message="Chargement des statistiques..."
+              ></app-loading-indicator>
+            </div>
+            <ng-template #graphiqueDepenses>
+              <div *ngFor="let cat of depensesParCategorie | keyvalue" class="mb-3">
+                <div class="d-flex justify-content-between">
+                  <span>{{ cat.key }}</span>
+                  <span class="fw-bold">{{ cat.value | spaceNumber }} Ar</span>
+                </div>
+                <div class="progress">
+                  <div
+                    class="progress-bar bg-info"
+                    [style.width]="(cat.value / totalDepenses) * 100 + '%'"
+                    [attr.aria-valuenow]="(cat.value / totalDepenses) * 100"
+                    aria-valuemin="0"
+                    aria-valuemax="100"
+                  >
+                    {{ (cat.value / totalDepenses) * 100 | number: '1.0-0' }}%
+                  </div>
+                </div>
+              </div>
+            </ng-template>
+          </div>
+        </div>
+      </div>
+
+      <div class="col-md-6">
+        <div class="card">
+          <div class="card-header bg-success text-white">
+            <h5 class="mb-0">
+              <i class="fa-solid fa-chart-line me-1"></i> Évolution mensuelle (3 derniers mois)
+            </h5>
+          </div>
+          <div class="card-body">
+            <div *ngIf="loading.graphiques; else graphiqueEvolution" class="p-4">
+              <app-loading-indicator
+                message="Chargement des statistiques..."
+              ></app-loading-indicator>
+            </div>
+            <ng-template #graphiqueEvolution>
+              <div *ngFor="let mois of evolutionMensuelle" class="mb-3">
+                <div class="d-flex justify-content-between">
+                  <span>{{ mois.mois }}</span>
+                  <span class="fw-bold text-success">{{ mois.recettes | spaceNumber }} Ar</span>
+                  <span class="fw-bold text-danger">{{ mois.depenses | spaceNumber }} Ar</span>
+                </div>
+                <div class="progress" style="height: 25px">
+                  <div
+                    class="progress-bar bg-success"
+                    [style.width]="(mois.recettes / (mois.recettes + mois.depenses)) * 100 + '%'"
+                    [attr.aria-valuenow]="(mois.recettes / (mois.recettes + mois.depenses)) * 100"
+                    aria-valuemin="0"
+                    aria-valuemax="100"
+                  >
+                    Recettes: {{ mois.recettes | spaceNumber }}
+                  </div>
+                  <div
+                    class="progress-bar bg-danger"
+                    [style.width]="(mois.depenses / (mois.recettes + mois.depenses)) * 100 + '%'"
+                    [attr.aria-valuenow]="(mois.depenses / (mois.recettes + mois.depenses)) * 100"
+                    aria-valuemin="0"
+                    aria-valuemax="100"
+                  >
+                    Dépenses: {{ mois.depenses | spaceNumber }}
+                  </div>
+                </div>
+              </div>
+            </ng-template>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

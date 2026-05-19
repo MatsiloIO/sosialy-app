@@ -1,0 +1,7 @@
+.card {
+  border: none;
+}
+
+.input-group-text {
+  min-width: 55px;
+}

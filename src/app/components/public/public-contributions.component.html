@@ -1,0 +1,209 @@
+<div class="container mt-4" #exportPage>
+  <div class="text-center mb-2">
+    <h1 class="display-4"><i class="fas fa-chart-bar me-2"></i>État des cotisations</h1>
+    <p class="lead">Statut global des cotisations des membres</p>
+    <span>Année {{ anneeSelectionnee }}</span>
+  </div>
+
+  <app-loading-indicator
+    *ngIf="isLoading"
+    message="Chargement des données..."
+  ></app-loading-indicator>
+
+  <ng-container *ngIf="!isLoading">
+    <div class="card mb-4">
+      <div class="card-body">
+        <div class="row g-3">
+          <div class="col-md-3">
+            <label class="form-label">Année</label>
+            <select
+              [(ngModel)]="anneeSelectionnee"
+              (ngModelChange)="loadData()"
+              class="form-select"
+            >
+              <option *ngFor="let a of annees" [value]="a">{{ a }}</option>
+            </select>
+          </div>
+          <div class="col-md-4">
+            <label class="form-label">Recherche</label>
+            <div class="input-group">
+              <span class="input-group-text"><i class="fas fa-magnifying-glass"></i></span>
+              <input
+                type="text"
+                class="form-control"
+                [(ngModel)]="filtreRecherche"
+                (ngModelChange)="applyFiltre()"
+                placeholder="Nom, prénom ou IM..."
+              />
+              <button
+                class="btn btn-outline-secondary"
+                (click)="clearFiltre()"
+                *ngIf="filtreRecherche"
+                type="button"
+              >
+                <i class="fas fa-xmark"></i>
+              </button>
+            </div>
+          </div>
+          <div class="col-md-3">
+            <label class="form-label">Filtrer par statut</label>
+            <select class="form-select" [(ngModel)]="filtreStatut" (ngModelChange)="applyFiltre()">
+              <option value="tous">Tous les membres</option>
+              <option value="a_jour">À jour (100%)</option>
+              <option value="partiel">Partiel (1-11 mois)</option>
+              <option value="aucun">Aucune cotisation</option>
+            </select>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="row mb-4 g-3">
+      <div class="col-md-3">
+        <div class="card bg-primary text-white shadow-sm">
+          <div class="card-body text-center">
+            <h5 class="card-title"><i class="fas fa-users me-2"></i>Total membres</h5>
+            <h2 class="card-text">{{ totalMembres }}</h2>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-3">
+        <div class="card bg-success text-white shadow-sm">
+          <div class="card-body text-center">
+            <h5 class="card-title"><i class="fas fa-check me-2"></i>Membres à jour</h5>
+            <h2 class="card-text">{{ membresAJour }}</h2>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-3">
+        <div class="card bg-info text-white shadow-sm">
+          <div class="card-body text-center">
+            <h5 class="card-title"><i class="fas fa-chart-bar me-2"></i>Taux global</h5>
+            <h2 class="card-text">{{ tauxGlobal }}%</h2>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-3">
+        <div class="card bg-warning text-dark shadow-sm">
+          <div class="card-body text-center">
+            <h5 class="card-title"><i class="fas fa-wallet me-2"></i>Total collecté</h5>
+            <h2 class="card-text">{{ totalCollecte | spaceNumber }} Ar</h2>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card shadow-sm">
+      <div class="card-header bg-dark text-white d-flex justify-content-between align-items-center">
+        <h5 class="mb-0">Détail des cotisations par membre</h5>
+        <div class="btn-group btn-group-sm" role="group">
+          <button class="btn btn-outline-light" (click)="exportAsImage()" title="Exporter en image">
+            <i class="fa-solid fa-image me-1"></i> Image
+          </button>
+          <button class="btn btn-outline-light" (click)="exportAsPDF()" title="Exporter en PDF">
+            <i class="fa-solid fa-file-pdf me-1"></i> PDF
+          </button>
+        </div>
+      </div>
+      <div class="card-body p-0">
+        <div class="table-responsive">
+          <table class="table table-hover mb-0">
+            <thead class="table-light">
+              <tr>
+                <th>IM</th>
+                <th>Nom complet</th>
+                <th>Service</th>
+                <th>Cat.</th>
+                <th>Montant/mois</th>
+                <th>Mois payés</th>
+                <th>Taux</th>
+                <th>Total annuel</th>
+                <th>Statut</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let member of membresFiltres">
+                <td>
+                  <strong>{{ member.im }}</strong>
+                </td>
+                <td>{{ member.nom }} {{ member.prenom }}</td>
+                <td>{{ member.service || '-' }}</td>
+                <td>
+                  <span
+                    class="badge"
+                    [ngClass]="member.categorie === 'A' ? 'bg-primary' : 'bg-secondary'"
+                    >{{ member.categorie }}</span
+                  >
+                </td>
+                <td>{{ member.montantMensuel | spaceNumber }} Ar</td>
+                <td>
+                  <div class="d-flex align-items-center gap-2">
+                    <span class="fw-bold">{{ member.moisPayes }}/12</span>
+                    <div class="progress grow" style="width: 80px; height: 8px">
+                      <div
+                        class="progress-bar"
+                        [ngClass]="member.tauxPaiement === 100 ? 'bg-success' : 'bg-info'"
+                        [style.width]="member.tauxPaiement + '%'"
+                      ></div>
+                    </div>
+                  </div>
+                </td>
+                <td>
+                  <span
+                    class="badge fs-6"
+                    [ngClass]="{
+                      'bg-success': member.tauxPaiement === 100,
+                      'bg-warning text-dark': member.tauxPaiement > 0 && member.tauxPaiement < 100,
+                      'bg-danger': member.tauxPaiement === 0,
+                    }"
+                    >{{ member.tauxPaiement }}%</span
+                  >
+                </td>
+                <td>
+                  <strong class="text-primary">{{ member.totalAnnuel | spaceNumber }} Ar</strong>
+                </td>
+                <td>
+                  <span
+                    class="badge fs-6"
+                    [ngClass]="{
+                      'bg-success': member.tauxPaiement === 100,
+                      'bg-warning text-dark': member.tauxPaiement > 0 && member.tauxPaiement < 100,
+                      'bg-secondary': member.tauxPaiement === 0,
+                    }"
+                  >
+                    <ng-container *ngIf="member.tauxPaiement === 100"
+                      ><i class="fas fa-check me-1"></i>À jour</ng-container
+                    >
+                    <ng-container *ngIf="member.tauxPaiement > 0 && member.tauxPaiement < 100"
+                      ><i class="fas fa-triangle-exclamation me-1"></i>Partiel</ng-container
+                    >
+                    <ng-container *ngIf="member.tauxPaiement === 0"
+                      ><i class="fas fa-xmark me-1"></i>Aucune</ng-container
+                    >
+                  </span>
+                </td>
+              </tr>
+              <tr *ngIf="membresFiltres.length === 0">
+                <td colspan="9" class="text-center text-muted py-5">
+                  <i class="bi bi-search"></i> Aucun membre trouvé
+                </td>
+              </tr>
+            </tbody>
+            <tfoot class="table-light fw-bold">
+              <tr>
+                <td colspan="5">Totaux</td>
+                <td>{{ totalMoisPayes }}/{{ totalMembres * 12 }}</td>
+                <td>{{ tauxGlobal }}%</td>
+                <td colspan="2">{{ totalCollecte | spaceNumber }} Ar</td>
+              </tr>
+            </tfoot>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <div class="text-center text-muted mt-4 pt-3 border-top">
+      <small>Dernière mise à jour : {{ dateDerniereMAJ | date: 'dd/MM/yyyy HH:mm' }}</small>
+    </div>
+  </ng-container>
+</div>

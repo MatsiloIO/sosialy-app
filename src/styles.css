@@ -1,0 +1,268 @@
+@import url('https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap');
+@import "@fortawesome/fontawesome-free/css/all.min.css";
+
+:root {
+  color-scheme: light;
+  --body-bg: #f3f6fb;
+  --surface: #ffffff;
+  --surface-alt: #f8fbff;
+  --text-color: #111827;
+  --muted: #6b7280;
+  --border-color: rgba(15, 23, 42, 0.08);
+  --primary: #2563eb;
+  --primary-contrast: #ffffff;
+  --secondary: #06b6d4;
+  --success: #16a34a;
+  --warning: #f59e0b;
+  --danger: #dc2626;
+  --card-shadow: 0 20px 45px rgba(15, 23, 42, 0.07);
+}
+
+.theme-dark {
+  color-scheme: dark;
+  --body-bg: #090b17;
+  --surface: #111827;
+  --surface-alt: #0f172a;
+  --text-color: #e2e8f0;
+  --muted: #94a3b8;
+  --border-color: rgba(148, 163, 184, 0.20);
+  --primary: #60a5fa;
+  --primary-contrast: #0f172a;
+  --secondary: #22d3ee;
+  --success: #4ade80;
+  --warning: #facc15;
+  --danger: #fb7185;
+  --card-shadow: 0 20px 45px rgba(0, 0, 0, 0.35);
+}
+
+/* Global layout and theme */
+html, body {
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  font-family: 'Roboto', sans-serif;
+  background: var(--body-bg);
+  color: var(--text-color);
+  overflow: hidden;
+  transition: background 200ms ease, color 200ms ease;
+}
+
+body {
+  background-color: var(--body-bg);
+}
+
+app-root {
+  display: contents;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+button, input, select, textarea {
+  transition: background-color 150ms ease, border-color 150ms ease, color 150ms ease;
+}
+
+.card {
+  background: var(--surface) !important;
+  border-color: var(--border-color) !important;
+  color: var(--text-color) !important;
+  box-shadow: var(--card-shadow) !important;
+  border-radius: 1rem !important;
+}
+
+.card-header,
+.card-body,
+.card-footer {
+  background: transparent !important;
+}
+
+.form-control,
+.form-select,
+.input-group-text,
+textarea {
+  background: var(--surface) !important;
+  color: var(--text-color) !important;
+  border-color: var(--border-color) !important;
+}
+
+.form-control::placeholder,
+.form-select::placeholder,
+input::placeholder,
+textarea::placeholder {
+  color: rgba(107, 114, 128, 0.8);
+}
+
+.theme-dark .form-control::placeholder,
+.theme-dark .form-select::placeholder,
+.theme-dark input::placeholder,
+.theme-dark textarea::placeholder {
+  color: rgba(226, 232, 240, 0.7);
+}
+
+.form-control:focus,
+.form-select:focus,
+input:focus,
+textarea:focus {
+  border-color: var(--primary) !important;
+  box-shadow: 0 0 0 0.15rem rgba(37, 99, 235, 0.15) !important;
+}
+
+.table {
+  color: var(--text-color);
+  background: transparent;
+}
+
+.table th,
+.table td {
+  border-color: var(--border-color) !important;
+}
+
+.table thead th {
+  border-color: var(--border-color) !important;
+  background: var(--surface-alt) !important;
+  color: var(--text-color) !important;
+}
+
+.table tbody tr {
+  background: var(--surface) !important;
+}
+
+.table tbody tr:hover {
+  background-color: rgba(37, 99, 235, 0.08);
+}
+
+.theme-dark .table {
+  color: var(--text-color) !important;
+}
+
+.theme-dark .table th,
+.theme-dark .table td {
+  border-color: var(--border-color) !important;
+  background: var(--surface) !important;
+  color: var(--text-color) !important;
+}
+
+.theme-dark .table thead th {
+  background: var(--surface-alt) !important;
+}
+
+.theme-dark .table tbody tr {
+  background: var(--surface) !important;
+}
+
+.theme-dark .table tbody tr:hover {
+  background-color: rgba(96, 165, 250, 0.16) !important;
+}
+
+.btn-primary {
+  background-color: var(--primary);
+  border-color: var(--primary);
+  color: var(--primary-contrast);
+}
+
+.btn-primary:hover,
+.btn-primary:focus {
+  background-color: #1d4ed8;
+  border-color: #1d4ed8;
+}
+
+.btn-outline-secondary {
+  color: var(--text-color);
+  border-color: var(--border-color);
+}
+
+.btn-outline-secondary:hover {
+  background-color: rgba(15, 23, 42, 0.06);
+}
+
+.input-group-text {
+  background: var(--surface-alt) !important;
+}
+
+.app-container {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  overflow: hidden;
+}
+
+.app-layout {
+  display: flex;
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.app-main {
+  flex: 1;
+  overflow-y: auto;
+}
+
+/* Pagination styling (light + dark) */
+.pagination {
+  --bs-pagination-link-color: var(--text-color);
+  --bs-pagination-active-bg: var(--primary);
+}
+
+.pagination .page-link {
+  color: var(--text-color) !important;
+  background: var(--surface) !important;
+  border: 1px solid var(--border-color) !important;
+}
+
+.pagination .page-item.disabled .page-link {
+  color: var(--muted) !important;
+  opacity: 0.7;
+  background: var(--surface) !important;
+}
+
+.pagination .page-item.active .page-link {
+  background: var(--primary) !important;
+  border-color: var(--primary) !important;
+  color: var(--primary-contrast) !important;
+}
+
+/* Dark mode overrides for pagination */
+.theme-dark .pagination .page-link {
+  background: var(--surface) !important;
+  color: var(--text-color) !important;
+  border-color: var(--border-color) !important;
+}
+
+.theme-dark .pagination .page-item.active .page-link {
+  background: var(--primary) !important;
+  border-color: var(--primary) !important;
+  color: var(--primary-contrast) !important;
+}
+
+.theme-dark .pagination .page-item.disabled .page-link {
+  color: var(--muted) !important;
+  background: var(--surface) !important;
+}
+
+@media (max-width: 767.98px) {
+  .app-layout {
+    flex-direction: column;
+  }
+
+  /* Add vertical spacing between form inputs and cards */
+  .card + .card {
+    margin-top: 1.5rem;
+  }
+  
+  /* Add spacing after form containers */
+  .card:has(.form-control) {
+    margin-bottom: 1.5rem;
+  }
+
+  /* Add spacing between input groups */
+  .input-group + .input-group {
+    margin-top: 1rem;
+  }
+
+  /* Add spacing for form rows */
+  .row + .card {
+    margin-top: 1.5rem;
+  }
+}

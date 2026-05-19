@@ -1,0 +1,17 @@
+.table tbody tr:hover {
+  background-color: rgba(13, 110, 253, 0.05);
+}
+
+.progress {
+  background-color: #e9ecef;
+  border-radius: 4px;
+}
+
+.card {
+  border: none;
+}
+
+.table > :not(caption) > * > * {
+  padding: 12px 8px;
+  vertical-align: middle;
+}

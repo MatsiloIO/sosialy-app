@@ -1,0 +1,16 @@
+.table-responsive {
+  overflow-x: auto;
+}
+
+.card .form-control,
+.card .form-select {
+  min-height: 38px;
+}
+
+@media (max-width: 767.98px) {
+  .row.gy-2 .col-md-3,
+  .row.gy-2 .col-md-2 {
+    flex: 0 0 100%;
+    max-width: 100%;
+  }
+}

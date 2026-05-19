@@ -1,0 +1,43 @@
+.sticky-top {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+
+.table tbody tr:hover {
+  background-color: rgba(13, 110, 253, 0.1);
+  cursor: pointer;
+}
+
+.card {
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.card:not(.bg-success):hover {
+  transform: translateY(-5px);
+  box-shadow: 0 6px 12px rgba(0,0,0,0.15);
+}
+
+.bg-success {
+  background-color: #28a745 !important;
+}
+
+.bg-warning {
+  background-color: #ffc107 !important;
+}
+
+.bg-light {
+  background-color: #f8f9fa !important;
+}
+
+.bg-light:hover {
+  background-color: #e9ecef !important;
+}
+
+.pagination .page-link {
+  cursor: pointer;
+}
+
+.pagination .disabled .page-link {
+  cursor: not-allowed;
+}
