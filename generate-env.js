@@ -26,7 +26,7 @@ function generateEnvironmentFile(targetPath, isProduction) {
 export const environment = {
   production: ${isProduction},
   supabaseUrl: '${envConfig.supabaseUrl}',
-  supabaseKey: '${envConfig.supabaseKey}'
+  supabaseAnonKey: '${envConfig.supabaseAnonKey}'
 };
 `;
 
@@ -47,7 +47,7 @@ if (envConfig.production) {
 }
 
 // Vérification optionnelle des variables
-if (!envConfig.supabaseUrl || !envConfig.supabaseKey) {
+if (!envConfig.supabaseUrl || !envConfig.supabaseAnonKey) {
     console.warn('⚠️  Attention: Variables d\'environnement Supabase manquantes!');
     console.warn('   Assurez-vous que NG_APP_SUPABASE_URL et NG_APP_SUPABASE_API_KEY sont définies sur Netlify');
 } else {
