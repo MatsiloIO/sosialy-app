@@ -6,7 +6,7 @@ const path = require('path');
 const envConfig = {
     production: process.env.CONTEXT === 'production',
     supabaseUrl: process.env.NG_APP_SUPABASE_URL || '',
-    supabaseKey: process.env.NG_APP_SUPABASE_API_KEY || ''
+    supabaseAnonKey: process.env.NG_APP_SUPABASE_API_KEY || ''
 };
 
 // Fonction pour garantir qu'un dossier existe
