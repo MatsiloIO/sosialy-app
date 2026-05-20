@@ -1,0 +1,85 @@
+<div class="container">
+  <div class="row justify-content-center">
+    <div class="col-md-6 col-lg-4">
+      <div class="card shadow">
+        <div class="card-body p-4">
+          <h2 class="text-center mb-4">
+            <span *ngIf="!showSignUp">Connexion</span>
+            <span *ngIf="showSignUp">Inscription</span>
+          </h2>
+
+          <form [formGroup]="loginForm" (ngSubmit)="onSubmit()">
+            <div class="mb-3">
+              <label for="email" class="form-label">Email</label>
+              <input
+                type="email"
+                class="form-control"
+                id="email"
+                formControlName="email"
+                [ngClass]="{ 'is-invalid': f['email'].touched && f['email'].invalid }"
+              />
+              <div class="invalid-feedback" *ngIf="f['email'].touched && f['email'].invalid">
+                <div *ngIf="f['email'].errors?.['required']">L'email est requis</div>
+                <div *ngIf="f['email'].errors?.['email']">Veuillez entrer un email valide</div>
+              </div>
+            </div>
+
+            <div class="mb-3">
+              <label for="password" class="form-label">Mot de passe</label>
+              <input
+                type="password"
+                class="form-control"
+                id="password"
+                formControlName="password"
+                [ngClass]="{ 'is-invalid': f['password'].touched && f['password'].invalid }"
+              />
+              <div class="invalid-feedback" *ngIf="f['password'].touched && f['password'].invalid">
+                <div *ngIf="f['password'].errors?.['required']">Le mot de passe est requis</div>
+                <div *ngIf="f['password'].errors?.['minlength']">
+                  Le mot de passe doit contenir au moins 6 caractères
+                </div>
+              </div>
+            </div>
+
+            <div class="mb-3" *ngIf="showSignUp">
+              <label for="name" class="form-label">Nom</label>
+              <input
+                type="text"
+                class="form-control"
+                id="name"
+                formControlName="name"
+                [ngClass]="{ 'is-invalid': f['name'].touched && f['name'].invalid }"
+              />
+              <div class="invalid-feedback" *ngIf="f['name'].touched && f['name'].invalid">
+                <div *ngIf="f['name'].errors?.['required']">Le nom est requis</div>
+              </div>
+            </div>
+
+            <div class="d-grid gap-2">
+              <button
+                type="submit"
+                class="btn btn-primary"
+                [disabled]="loading || loginForm.invalid"
+              >
+                <span *ngIf="loading" class="spinner-border spinner-border-sm me-2"></span>
+                <span *ngIf="!showSignUp">Se connecter</span>
+                <span *ngIf="showSignUp">S'inscrire</span>
+              </button>
+            </div>
+
+            <div class="text-center mt-3">
+              <button type="button" class="btn btn-link" (click)="toggleMode()">
+                <span *ngIf="!showSignUp">Pas de compte ? S'inscrire</span>
+                <span *ngIf="showSignUp">Déjà un compte ? Se connecter</span>
+              </button>
+            </div>
+          </form>
+
+          <div *ngIf="error" class="alert alert-danger mt-3">
+            {{ error }}
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

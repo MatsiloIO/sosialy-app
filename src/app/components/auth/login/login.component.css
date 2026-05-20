@@ -1,0 +1,79 @@
+.card {
+  border: none;
+  border-radius: 10px;
+}
+
+.card-body {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  border-radius: 10px;
+}
+
+.form-control {
+  background: rgba(255, 255, 255, 0.9);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  color: #333;
+}
+
+.form-control:focus {
+  background: rgba(255, 255, 255, 1);
+  border-color: rgba(255, 255, 255, 0.5);
+  box-shadow: 0 0 0 0.2rem rgba(255, 255, 255, 0.25);
+  color: #333;
+}
+
+.form-label {
+  color: rgba(255, 255, 255, 0.9);
+  font-weight: 500;
+}
+
+.btn-primary {
+  background: rgba(255, 255, 255, 0.2);
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  color: white;
+  font-weight: 500;
+  transition: all 0.3s ease;
+}
+
+.btn-primary:hover {
+  background: rgba(255, 255, 255, 0.3);
+  border-color: rgba(255, 255, 255, 0.5);
+  color: white;
+}
+
+.btn-primary:disabled {
+  background: rgba(255, 255, 255, 0.1);
+  border-color: rgba(255, 255, 255, 0.2);
+  color: rgba(255, 255, 255, 0.7);
+}
+
+.btn-link {
+  color: rgba(255, 255, 255, 0.8);
+  text-decoration: underline;
+}
+
+.btn-link:hover {
+  color: white;
+}
+
+.alert-danger {
+  background: rgba(220, 53, 69, 0.9);
+  border: 1px solid rgba(220, 53, 69, 0.3);
+  color: white;
+}
+
+.invalid-feedback {
+  color: rgba(255, 255, 255, 0.9);
+}
+
+.is-invalid {
+  background: rgba(255, 255, 255, 0.95);
+  border-color: rgba(220, 53, 69, 0.5);
+}
+
+.is-invalid:focus {
+  background: rgba(255, 255, 255, 1);
+  border-color: rgba(220, 53, 69, 0.7);
+  box-shadow: 0 0 0 0.2rem rgba(220, 53, 69, 0.25);
+  color: #333;
+}

@@ -15,18 +15,18 @@ import {
 
 @Injectable({ providedIn: 'root' })
 export class SupabaseService {
-    private supabase: SupabaseClient;
+    supabase: SupabaseClient;
 
     constructor() {
-        // Configuration sans auth pour éviter les locks
+        // Configuration avec auth activée
         this.supabase = createClient(
             environment.supabaseUrl,
             environment.supabaseAnonKey,
             {
                 auth: {
-                    persistSession: false,
-                    autoRefreshToken: false,
-                    detectSessionInUrl: false
+                    persistSession: true,
+                    autoRefreshToken: true,
+                    detectSessionInUrl: true
                 }
             }
         );
