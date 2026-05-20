@@ -15,7 +15,7 @@
             </p>
           </div>
           <ng-template #recettesContent>
-            <h2>{{ totalRecettes | spaceNumber }} Ar</h2>
+            <h2 class="text-primary">{{ totalRecettes | spaceNumber }} Ar</h2>
             <small>Cotisations: {{ totalCotisations | spaceNumber }} Ar</small><br />
             <small>Autres recettes: {{ totalOtherRevenues | spaceNumber }} Ar</small>
           </ng-template>
@@ -33,7 +33,7 @@
             </div>
           </div>
           <ng-template #depensesContent>
-            <h2>{{ totalDepenses | spaceNumber }} Ar</h2>
+            <h2 class="text-warning">{{ totalDepenses | spaceNumber }} Ar</h2>
           </ng-template>
         </div>
       </div>
@@ -49,7 +49,9 @@
             </div>
           </div>
           <ng-template #soldeContent>
-            <h2>{{ solde | spaceNumber }} Ar</h2>
+            <h2 [class]="solde < 0 ? 'text-danger' : solde > 0 ? 'text-success' : ''">
+              {{ solde | spaceNumber }} Ar
+            </h2>
           </ng-template>
         </div>
       </div>
@@ -125,7 +127,7 @@
     </div>
 
     <div class="card">
-      <div class="card-header bg-dark text-white">
+      <div class="card-header bg-success" data-bs-theme="dark">
         <h5 class="mb-0">Liste des dépenses</h5>
       </div>
       <div class="card-body p-0">
@@ -184,7 +186,7 @@
           <div class="col-md-2">
             <input [(ngModel)]="revenueForm.date" type="date" class="form-control" />
           </div>
-          <div class="col-md-3">
+          <div class="col-md-4">
             <input [(ngModel)]="revenueForm.libelle" placeholder="Libellé" class="form-control" />
           </div>
           <div class="col-md-2">
@@ -200,14 +202,14 @@
               <option *ngFor="let cat of revenueCategories" [value]="cat.id">{{ cat.name }}</option>
             </select>
           </div>
-          <div class="col-md-2">
+          <div class="col-md-1">
             <button
               (click)="addRevenue()"
               class="btn btn-primary w-100"
               [disabled]="loading.actions"
             >
               <span *ngIf="loading.actions" class="spinner-border spinner-border-sm me-1"></span>
-              Ajouter
+              <i class="fa fa-plus"></i>
             </button>
           </div>
         </div>
@@ -215,7 +217,7 @@
     </div>
 
     <div class="card">
-      <div class="card-header bg-dark text-white">
+      <div class="card-header" data-bs-theme="dark">
         <h5 class="mb-0">Liste des autres recettes</h5>
       </div>
       <div class="card-body p-0">
@@ -309,7 +311,7 @@
     <div class="row">
       <div class="col-md-6">
         <div class="card">
-          <div class="card-header bg-primary text-white">
+          <div class="card-header" data-bs-theme="dark">
             <h5 class="mb-0">
               <i class="fa-solid fa-chart-pie me-1"></i> Répartition des dépenses par catégorie
             </h5>
@@ -345,7 +347,7 @@
 
       <div class="col-md-6">
         <div class="card">
-          <div class="card-header bg-success text-white">
+          <div class="card-header" data-bs-theme="dark">
             <h5 class="mb-0">
               <i class="fa-solid fa-chart-line me-1"></i> Évolution mensuelle (3 derniers mois)
             </h5>

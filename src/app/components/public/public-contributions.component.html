@@ -93,14 +93,21 @@
       </div>
     </div>
 
-    <div class="card shadow-sm">
-      <div class="card-header bg-dark text-white d-flex justify-content-between align-items-center">
+    <div class="card">
+      <div
+        class="card-header d-flex justify-content-between align-items-center"
+        data-bs-theme="dark"
+      >
         <h5 class="mb-0">Détail des cotisations par membre</h5>
         <div class="btn-group btn-group-sm" role="group">
-          <button class="btn btn-outline-light" (click)="exportAsImage()" title="Exporter en image">
+          <button
+            class="btn btn-outline-primary"
+            (click)="exportAsImage()"
+            title="Exporter en image"
+          >
             <i class="fa-solid fa-image me-1"></i> Image
           </button>
-          <button class="btn btn-outline-light" (click)="exportAsPDF()" title="Exporter en PDF">
+          <button class="btn btn-outline-danger" (click)="exportAsPDF()" title="Exporter en PDF">
             <i class="fa-solid fa-file-pdf me-1"></i> PDF
           </button>
         </div>
