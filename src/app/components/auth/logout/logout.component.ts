@@ -1,37 +1,47 @@
-import { Component } from '@angular/core';
-import { AuthService } from '../../../services/auth.service';
+import { Component, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
-import { CommonModule } from '@angular/common';
+import { AuthService } from '../../../services/auth.service';
 
 @Component({
   selector: 'app-logout',
   standalone: true,
-  imports: [CommonModule],
   template: `
-    <div class="container mt-5">
-      <div class="row justify-content-center">
-        <div class="col-md-6">
-          <div class="card">
-            <div class="card-body text-center">
-              <h3>Déconnexion</h3>
-              <p>Vous êtes sur le point de vous déconnecter.</p>
-              <button class="btn btn-primary" (click)="logout()">Se déconnecter</button>
-            </div>
-          </div>
+        <div class="logout-container">
+            <div class="spinner spinner-border"></div>
+            <p>Déconnexion en cours...</p>
         </div>
-      </div>
-    </div>
-  `
+    `,
+  styles: [`
+        .logout-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+        }
+        .spinner {
+            width: 40px;
+            height: 40px;
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #667eea;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-bottom: 16px;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    `]
 })
-export class LogoutComponent {
+export class LogoutComponent implements OnInit {
   constructor(
     private authService: AuthService,
     private router: Router
-  ) {}
+  ) { }
 
-  logout(): void {
-    this.authService.signOut().then(() => {
-      this.router.navigate(['/login']);
-    });
+  async ngOnInit() {
+    await this.authService.signOut();
+    this.router.navigate(['/login']);
   }
 }

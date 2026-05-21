@@ -40,7 +40,7 @@
     </div>
 
     <div class="col-md-4">
-      <div class="card text-white" [ngClass]="solde >= 0 ? 'bg-primary' : 'bg-warning'">
+      <div class="card text-white" [ngClass]="solde > 0 ? 'bg-primary' : 'bg-warning'">
         <div class="card-body">
           <h5>Solde</h5>
           <div *ngIf="loading.solde; else soldeContent">
@@ -49,7 +49,7 @@
             </div>
           </div>
           <ng-template #soldeContent>
-            <h2 [class]="solde < 0 ? 'text-danger' : solde > 0 ? 'text-success' : ''">
+            <h2 [class]="solde <= 0 ? 'text-danger' : 'text-success'">
               {{ solde | spaceNumber }} Ar
             </h2>
           </ng-template>

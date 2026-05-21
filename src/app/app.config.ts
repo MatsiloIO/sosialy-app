@@ -1,20 +1,21 @@
-import { ApplicationConfig, provideBrowserGlobalErrorListeners, provideZoneChangeDetection } from '@angular/core';
+/*src/app.config.ts*/
+import { ApplicationConfig } from '@angular/core';
 import { provideRouter } from '@angular/router';
-import { provideClientHydration } from '@angular/platform-browser';
 import { provideHttpClient } from '@angular/common/http';
 
 import { routes } from './app.routes';
-import { AuthService } from './services/auth.service';
+import { PublicGuard } from './guards/public.guard';
 import { AuthGuard } from './guards/auth.guard';
+import { RoleGuard } from './guards/role.guard';
 
 export const appConfig: ApplicationConfig = {
   providers: [
-    provideBrowserGlobalErrorListeners(),
-    provideZoneChangeDetection({ eventCoalescing: true }),
     provideRouter(routes),
-    provideClientHydration(),
     provideHttpClient(),
-    AuthService,
-    AuthGuard
+    // Les services avec providedIn: 'root' n'ont PAS besoin d'être dans providers
+    // AuthService, AuthGuard, RoleGuard sont déjà fournis via providedIn: 'root'
+    RoleGuard,
+    AuthGuard,
+    PublicGuard
   ]
 };

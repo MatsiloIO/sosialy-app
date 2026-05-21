@@ -11,14 +11,15 @@
       <div *ngIf="isAuthenticated" class="text-white">
         <small>{{ userName }}</small>
       </div>
+      <!-- Bouton déconnexion pour mobile -->
       <button *ngIf="isAuthenticated" class="btn btn-outline-secondary btn-sm" (click)="logout()">
         <i class="fa-solid fa-right-from-bracket"></i>
       </button>
-      <button
-        *ngIf="!isAuthenticated"
-        class="btn btn-outline-secondary btn-sm"
-        (click)="toggleTheme()"
-      >
+      <!-- Bouton connexion pour mobile -->
+      <a *ngIf="!isAuthenticated" class="btn btn-primary btn-sm" routerLink="/login">
+        <i class="fa-solid fa-right-to-bracket me-1"></i> Connexion
+      </a>
+      <button class="btn btn-outline-secondary btn-sm" (click)="toggleTheme()">
         <i class="fa-solid" [ngClass]="isDarkMode ? 'fa-sun' : 'fa-moon'"></i>
       </button>
     </div>
@@ -28,55 +29,90 @@
   <div class="app-layout">
     <!-- Sidebar for md+ screens -->
     <aside class="app-sidebar d-none d-md-flex flex-column p-3">
-      <div class="sidebar-top d-flex justify-content-between align-items-center mb-4">
-        <a class="sidebar-brand mb-0" href="#">Team DSSB</a>
-        <div class="d-flex align-items-center gap-2">
-          <div *ngIf="isAuthenticated" class="text-white">
-            <small>{{ userName }}</small>
+      <!-- Logo / Brand -->
+      <div class="sidebar-brand mb-4 text-center">
+        <a class="navbar-brand" href="#">Team DSSB</a>
+      </div>
+
+      <!-- Navigation Menu -->
+      <ul class="nav flex-column gap-1 grow">
+        <li class="nav-item" *ngIf="isAuthenticated">
+          <a class="nav-link" routerLink="/members">
+            <i class="fa-solid fa-users me-2"></i> Membres
+          </a>
+        </li>
+        <li class="nav-item" *ngIf="isAuthenticated">
+          <a class="nav-link" routerLink="/cashier">
+            <i class="fa-solid fa-money-bill-wave me-2"></i> Caisse
+          </a>
+        </li>
+        <li class="nav-item" *ngIf="isAuthenticated">
+          <a class="nav-link" routerLink="/contributions">
+            <i class="fa-solid fa-calendar-days me-2"></i> Cotisations
+          </a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" routerLink="/public/cotisations">
+            <i class="fa-solid fa-eye me-2"></i> Vue publique
+          </a>
+        </li>
+        <li class="nav-item" *ngIf="userRole === 'admin'">
+          <a class="nav-link" routerLink="/settings">
+            <i class="fa-solid fa-gear me-2"></i> Paramètres
+          </a>
+        </li>
+        <li class="nav-item" *ngIf="userRole === 'admin'">
+          <a class="nav-link" routerLink="/admin/users">
+            <i class="fa-solid fa-users me-2"></i> Gestion des utilisateurs
+          </a>
+        </li>
+      </ul>
+
+      <!-- Footer Sidebar (User info + Actions) -->
+      <div class="sidebar-footer mt-auto pt-3 border-top">
+        <!-- Utilisateur connecté -->
+        <div *ngIf="isAuthenticated" class="user-info mb-2">
+          <div class="d-flex align-items-center gap-2">
+            <i class="fa-solid fa-user-circle fa-lg"></i>
+            <div class="grow">
+              <small class="d-block fw-bold">{{ userName }}</small>
+              <small class="text-muted" style="font-size: 11px">{{
+                userRole === 'admin' ? 'Administrateur' : 'Éditeur'
+              }}</small>
+            </div>
           </div>
+        </div>
+
+        <div class="d-flex gap-2">
+          <!-- Bouton déconnexion (connecté) -->
           <button
             *ngIf="isAuthenticated"
-            class="btn btn-outline-secondary btn-sm"
+            class="btn btn-outline-danger btn-sm w-100"
             (click)="logout()"
           >
-            <i class="fa-solid fa-right-from-bracket"></i>
+            <i class="fa-solid fa-right-from-bracket me-1"></i> Déconnexion
           </button>
+
+          <!-- Bouton connexion (non connecté) -->
+          <a *ngIf="!isAuthenticated" class="btn btn-primary btn-sm w-100" routerLink="/login">
+            <i class="fa-solid fa-right-to-bracket me-1"></i> Connexion
+          </a>
+
+          <!-- Bouton thème (toujours visible) -->
           <button
-            *ngIf="!isAuthenticated"
             class="btn btn-outline-secondary btn-sm"
+            [ngClass]="{ 'w-100': !isAuthenticated }"
             (click)="toggleTheme()"
           >
             <i class="fa-solid" [ngClass]="isDarkMode ? 'fa-sun' : 'fa-moon'"></i>
+            <span class="d-none d-md-inline ms-1">Mode {{ isDarkMode ? 'clair' : 'sombre' }}</span>
           </button>
         </div>
+
+        <div *ngIf="!isAuthenticated" class="text-center mt-2">
+          <small class="text-muted">Vous n'êtes pas connecté</small>
+        </div>
       </div>
-      <ul class="nav flex-column gap-1">
-        <li class="nav-item" *ngIf="isAuthenticated">
-          <a class="nav-link" routerLink="/members"
-            ><i class="fa-solid fa-users me-2"></i> Membres</a
-          >
-        </li>
-        <li class="nav-item" *ngIf="isAuthenticated">
-          <a class="nav-link" routerLink="/cashier"
-            ><i class="fa-solid fa-money-bill-wave me-2"></i> Caisse</a
-          >
-        </li>
-        <li class="nav-item" *ngIf="isAuthenticated">
-          <a class="nav-link" routerLink="/contributions"
-            ><i class="fa-solid fa-calendar-days me-2"></i> Cotisations</a
-          >
-        </li>
-        <li class="nav-item">
-          <a class="nav-link" routerLink="/public/cotisations"
-            ><i class="fa-solid fa-eye me-2"></i> Vue publique</a
-          >
-        </li>
-        <li class="nav-item" *ngIf="isAuthenticated">
-          <a class="nav-link" routerLink="/settings"
-            ><i class="fa-solid fa-gear me-2"></i> Paramètres</a
-          >
-        </li>
-      </ul>
     </aside>
 
     <!-- Main content -->
@@ -92,54 +128,85 @@
     (click)="closeMobileSidebar()"
   >
     <nav class="mobile-sidebar" (click)="$event.stopPropagation()">
-      <div class="d-flex justify-content-between align-items-center mb-3">
+      <div class="d-flex justify-content-between align-items-center mb-3 pb-2 border-bottom">
         <h5 class="mb-0">Menu</h5>
         <button class="btn btn-sm btn-outline-secondary" (click)="closeMobileSidebar()">
           <i class="fa-solid fa-xmark"></i>
         </button>
       </div>
+
       <ul class="nav flex-column gap-1">
         <li class="nav-item" *ngIf="isAuthenticated">
-          <a class="nav-link" routerLink="/members" (click)="closeMobileSidebar()"
-            ><i class="fa-solid fa-users me-2"></i> Membres</a
-          >
+          <a class="nav-link" routerLink="/members" (click)="closeMobileSidebar()">
+            <i class="fa-solid fa-users me-2"></i> Membres
+          </a>
         </li>
         <li class="nav-item" *ngIf="isAuthenticated">
-          <a class="nav-link" routerLink="/cashier" (click)="closeMobileSidebar()"
-            ><i class="fa-solid fa-money-bill-wave me-2"></i> Caisse</a
-          >
+          <a class="nav-link" routerLink="/cashier" (click)="closeMobileSidebar()">
+            <i class="fa-solid fa-money-bill-wave me-2"></i> Caisse
+          </a>
         </li>
         <li class="nav-item" *ngIf="isAuthenticated">
-          <a class="nav-link" routerLink="/contributions" (click)="closeMobileSidebar()"
-            ><i class="fa-solid fa-calendar-days me-2"></i> Cotisations</a
-          >
+          <a class="nav-link" routerLink="/contributions" (click)="closeMobileSidebar()">
+            <i class="fa-solid fa-calendar-days me-2"></i> Cotisations
+          </a>
         </li>
         <li class="nav-item">
-          <a class="nav-link" routerLink="/public/cotisations" (click)="closeMobileSidebar()"
-            ><i class="fa-solid fa-eye me-2"></i> Vue publique</a
-          >
+          <a class="nav-link" routerLink="/public/cotisations" (click)="closeMobileSidebar()">
+            <i class="fa-solid fa-eye me-2"></i> Vue publique
+          </a>
         </li>
-        <li class="nav-item" *ngIf="isAuthenticated">
-          <a class="nav-link" routerLink="/settings" (click)="closeMobileSidebar()"
-            ><i class="fa-solid fa-gear me-2"></i> Paramètres</a
-          >
+        <li class="nav-item" *ngIf="userRole === 'admin'">
+          <a class="nav-link" routerLink="/settings" (click)="closeMobileSidebar()">
+            <i class="fa-solid fa-gear me-2"></i> Paramètres
+          </a>
+        </li>
+        <li class="nav-item" *ngIf="userRole === 'admin'">
+          <a class="nav-link" routerLink="/admin/users" (click)="closeMobileSidebar()">
+            <i class="fa-solid fa-users me-2"></i> Gestion des utilisateurs
+          </a>
         </li>
       </ul>
-      <div class="mt-4">
-        <div *ngIf="isAuthenticated" class="mb-2">
-          <small class="d-block text-muted mb-1">{{ userName }}</small>
-          <button class="btn btn-outline-secondary w-100" (click)="logout()">
-            <i class="fa-solid fa-right-from-bracket"></i> Se déconnecter
+
+      <div class="mt-auto pt-3 border-top">
+        <!-- Utilisateur connecté -->
+        <div *ngIf="isAuthenticated" class="mb-2 pb-2 border-bottom">
+          <div class="d-flex align-items-center gap-2">
+            <i class="fa-solid fa-user-circle fa-lg"></i>
+            <div>
+              <small class="d-block fw-bold">{{ userName }}</small>
+              <small style="font-size: 11px">{{
+                userRole === 'admin' ? 'Administrateur' : 'Éditeur'
+              }}</small>
+            </div>
+          </div>
+        </div>
+
+        <div class="d-flex gap-2 flex-column">
+          <!-- Bouton déconnexion (connecté) -->
+          <button
+            *ngIf="isAuthenticated"
+            class="btn btn-danger btn-sm w-100"
+            (click)="logout(); closeMobileSidebar()"
+          >
+            <i class="fa-solid fa-right-from-bracket me-1"></i> Déconnexion
+          </button>
+
+          <!-- Bouton connexion (non connecté) -->
+          <a
+            *ngIf="!isAuthenticated"
+            class="btn btn-primary btn-sm w-100"
+            routerLink="/login"
+            (click)="closeMobileSidebar()"
+          >
+            <i class="fa-solid fa-right-to-bracket me-1"></i> Connexion
+          </a>
+
+          <!-- Bouton thème -->
+          <button class="btn btn-outline-secondary btn-sm w-100" (click)="toggleTheme()">
+            <i class="fa-solid" [ngClass]="isDarkMode ? 'fa-sun' : 'fa-moon'"></i>
           </button>
         </div>
-        <button
-          *ngIf="!isAuthenticated"
-          class="btn btn-outline-secondary w-100"
-          (click)="toggleTheme()"
-        >
-          <i class="fa-solid" [ngClass]="isDarkMode ? 'fa-sun' : 'fa-moon'"></i>
-          Mode {{ isDarkMode ? 'clair' : 'sombre' }}
-        </button>
       </div>
     </nav>
   </div>

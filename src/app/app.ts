@@ -1,7 +1,9 @@
-﻿import { Component, OnInit } from '@angular/core';
-import { RouterOutlet, RouterLink } from '@angular/router';
+﻿/*src/app.ts*/
+import { Component, OnInit } from '@angular/core';
+import { RouterOutlet, RouterLink, Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { AuthService } from './services/auth.service';
+import { Subscription } from 'rxjs';
 
 @Component({
   selector: 'app-root',
@@ -16,12 +18,20 @@ export class App implements OnInit {
   private readonly themeStorageKey = 'gestion-sociale-theme';
   isAuthenticated = false;
   userName = '';
+  userRole: string = 'visitor';
+  private authSubscription: Subscription | null = null;
 
-  constructor(private authService: AuthService) { }
+  constructor(private authService: AuthService, private router: Router) { }
 
   ngOnInit() {
     this.initializeTheme();
     this.initializeAuth();
+  }
+
+  ngOnDestroy() {
+    if (this.authSubscription) {
+      this.authSubscription.unsubscribe();
+    }
   }
 
   initializeTheme() {
@@ -32,8 +42,19 @@ export class App implements OnInit {
 
   initializeAuth() {
     this.authService.currentUser$.subscribe(user => {
+      const wasAuthenticated = this.isAuthenticated;
       this.isAuthenticated = user !== null;
       this.userName = this.authService.getUserName() || '';
+      // ✅ Si déconnecté, rediriger immédiatement vers login
+      if (!user && wasAuthenticated) {
+        this.router.navigate(['/login']);
+      }
+      console.log('🔍 isAuthenticated:', this.isAuthenticated);
+    });
+
+    // Abonnement au rôle
+    this.authService.currentRole$.subscribe(role => {
+      this.userRole = role;
     });
   }
 
@@ -56,8 +77,6 @@ export class App implements OnInit {
   }
 
   logout() {
-    this.authService.signOut().then(() => {
-      window.location.reload();
-    });
+    this.authService.signOut();
   }
 }

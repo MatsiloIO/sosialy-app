@@ -266,3 +266,128 @@ textarea:focus {
     margin-top: 1.5rem;
   }
 }
+
+/* Toast notifications */
+.alert {
+    border-radius: 0.75rem;
+    border: none;
+    box-shadow: var(--card-shadow);
+}
+
+.alert-success {
+    background: #d1e7dd;
+    color: #0a3622;
+    border-left: 4px solid #198754;
+}
+
+.theme-dark .alert-success {
+    background: #1a3a2a;
+    color: #a3e4c2;
+}
+
+.alert-warning {
+    background: #fff3cd;
+    color: #856404;
+    border-left: 4px solid #ffc107;
+}
+
+.theme-dark .alert-warning {
+    background: #332a00;
+    color: #ffd970;
+}
+
+.alert-info {
+    background: #cff4fc;
+    color: #055160;
+    border-left: 4px solid #0dcaf0;
+}
+
+.theme-dark .alert-info {
+    background: #0a2a2a;
+    color: #7dd3fc;
+}
+
+/* Amélioration des badges */
+.role-badge {
+    transition: all 0.2s ease;
+}
+
+.role-badge:hover {
+    transform: scale(1.05);
+}
+
+/* Animation pour les notifications */
+@keyframes slideIn {
+    from {
+        transform: translateX(100%);
+        opacity: 0;
+    }
+    to {
+        transform: translateX(0);
+        opacity: 1;
+    }
+}
+
+.alert {
+    animation: slideIn 0.3s ease-out;
+}
+
+/* Sidebar footer styling */
+.sidebar-footer {
+    padding-top: 1rem;
+    margin-top: auto;
+}
+
+.sidebar-footer .user-info {
+    padding: 0.5rem;
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 0.5rem;
+}
+
+.theme-dark .sidebar-footer .user-info {
+    background: rgba(255, 255, 255, 0.03);
+}
+
+/* Sidebar brand styling */
+.sidebar-brand {
+    text-align: center;
+    padding-bottom: 0.5rem;
+}
+
+.sidebar-brand .navbar-brand {
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: var(--primary);
+}
+
+/* Mobile sidebar improvements */
+.mobile-sidebar {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+}
+
+.mobile-sidebar .nav {
+    flex: 1;
+}
+
+/* Bouton déconnexion en rouge */
+.btn-outline-danger {
+    color: #dc2626;
+    border-color: #dc2626;
+}
+
+.btn-outline-danger:hover {
+    background-color: #dc2626;
+    color: white;
+}
+
+.theme-dark .btn-outline-danger {
+    color: #fb7185;
+    border-color: #fb7185;
+}
+
+.theme-dark .btn-outline-danger:hover {
+    background-color: #fb7185;
+    color: #1a202c;
+}

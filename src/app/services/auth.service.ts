@@ -1,8 +1,10 @@
+/*src/app/services/auth.service.ts*/
 import { Injectable } from '@angular/core';
 import { SupabaseService } from './supabase.service';
-import { BehaviorSubject, Observable, from } from 'rxjs';
-import { map, tap } from 'rxjs/operators';
-import { User } from '@supabase/supabase-js';
+import { BehaviorSubject } from 'rxjs';
+import { User, Session } from '@supabase/supabase-js';
+
+export type UserRole = 'visitor' | 'editor' | 'admin';
 
 @Injectable({
     providedIn: 'root'
@@ -11,19 +13,151 @@ export class AuthService {
     private currentUserSubject = new BehaviorSubject<User | null>(null);
     public currentUser$ = this.currentUserSubject.asObservable();
 
+    private currentSessionSubject = new BehaviorSubject<Session | null>(null);
+    public currentSession$ = this.currentSessionSubject.asObservable();
+
+    private currentRoleSubject = new BehaviorSubject<UserRole>('visitor');
+    public currentRole$ = this.currentRoleSubject.asObservable();
+
+    private refreshTimer: any;
+
     constructor(private supabaseService: SupabaseService) {
         this.loadUser();
+
+        this.supabaseService.supabase.auth.onAuthStateChange((event, session) => {
+            console.log('Auth state changed:', event, session?.user?.email);
+            this.currentUserSubject.next(session?.user ?? null);
+            this.currentSessionSubject.next(session);
+
+            if (session?.access_token) {
+                this.extractRoleFromJWT(session.access_token);
+                this.scheduleTokenRefresh(session.expires_at);
+            } else {
+                this.currentRoleSubject.next('visitor');
+                this.stopRefreshTimer();
+            }
+        });
     }
 
     private async loadUser() {
         try {
-            const { data: { user }, error } = await this.supabaseService.supabase.auth.getUser();
-            if (error) throw error;
+            const { data: { session }, error } = await this.supabaseService.supabase.auth.getSession();
+
+            if (error) {
+                console.error('Error getting session:', error);
+                this.currentUserSubject.next(null);
+                this.currentSessionSubject.next(null);
+                this.currentRoleSubject.next('visitor');
+                return;
+            }
+
+            const user = session?.user ?? null;
             this.currentUserSubject.next(user);
+            this.currentSessionSubject.next(session);
+
+            if (session?.access_token) {
+                this.extractRoleFromJWT(session.access_token);
+                this.scheduleTokenRefresh(session.expires_at);
+            } else {
+                this.currentRoleSubject.next('visitor');
+            }
+
+            if (!user) {
+                console.log('Aucune session active - utilisateur non connecté');
+            }
         } catch (error) {
-            console.error('Error loading user:', error);
+            console.error('Unexpected error loading user:', error);
             this.currentUserSubject.next(null);
+            this.currentSessionSubject.next(null);
+            this.currentRoleSubject.next('visitor');
         }
+    }
+
+    private extractRoleFromJWT(token: string): void {
+        try {
+            const payload = JSON.parse(atob(token.split('.')[1]));
+            console.log('🔍 JWT COMPLET:', payload);
+            console.log('🔍 user_role:', payload.user_role);
+            console.log('🔍 role:', payload.role);
+            console.log('🔍 app_metadata:', payload.app_metadata);
+            const role = payload.user_role || payload.app_metadata?.role || 'visitor';
+            console.log('🔍 Rôle final:', role);
+            this.currentRoleSubject.next(role as UserRole);
+        } catch (e) {
+            console.error('❌ Erreur décodage JWT:', e);
+            this.currentRoleSubject.next('visitor');
+        }
+        try {
+            const payload = JSON.parse(atob(token.split('.')[1]));
+            const role = payload.user_role || payload.app_metadata?.role || 'visitor';
+            this.currentRoleSubject.next(role as UserRole);
+            console.log('✅ Rôle extrait du JWT:', role);
+        } catch (e) {
+            console.error('❌ Erreur décodage JWT:', e);
+            this.currentRoleSubject.next('visitor');
+        }
+    }
+
+    private scheduleTokenRefresh(expiresAt: number | undefined): void {
+        // Si pas d'expiration, ne pas programmer
+        if (!expiresAt) {
+            console.log('⚠️ Pas d\'expiration définie, refresh non programmé');
+            return;
+        }
+
+        const now = Math.floor(Date.now() / 1000);
+        const timeUntilExpiry = expiresAt - now;
+
+        // Ne pas programmer si déjà expiré
+        if (timeUntilExpiry <= 0) {
+            console.log('⚠️ Token déjà expiré');
+            return;
+        }
+
+        // Rafraîchir 5 minutes avant expiration
+        const refreshDelay = Math.max((timeUntilExpiry - 300) * 1000, 60000);
+
+        console.log(`⏰ Refresh token programmé dans ${Math.floor(refreshDelay / 1000)} secondes`);
+
+        if (refreshDelay > 0 && refreshDelay < 24 * 60 * 60 * 1000) {
+            this.stopRefreshTimer();
+            this.refreshTimer = setTimeout(() => {
+                this.refreshToken();
+            }, refreshDelay);
+        }
+    }
+
+    private stopRefreshTimer(): void {
+        if (this.refreshTimer) {
+            clearTimeout(this.refreshTimer);
+            this.refreshTimer = null;
+        }
+    }
+
+    async refreshToken(): Promise<boolean> {
+        try {
+            console.log('🔄 Rafraîchissement du token...');
+            const { data, error } = await this.supabaseService.supabase.auth.refreshSession();
+
+            if (error) {
+                console.error('❌ Erreur refresh:', error);
+                return false;
+            }
+
+            if (data.session) {
+                console.log('✅ Token rafraîchi avec succès');
+                return true;
+            }
+            return false;
+        } catch (error) {
+            console.error('❌ Exception lors du refresh:', error);
+            return false;
+        }
+    }
+
+    async forceRefreshAfterRoleChange(): Promise<void> {
+        console.log('🔄 Rechargement après changement de rôle...');
+        await this.refreshSession();
     }
 
     async signIn(email: string, password: string): Promise<{ success: boolean; error?: any }> {
@@ -34,8 +168,6 @@ export class AuthService {
             });
 
             if (error) throw error;
-
-            this.currentUserSubject.next(data.user);
             return { success: true };
         } catch (error) {
             console.error('Sign in error:', error);
@@ -56,8 +188,6 @@ export class AuthService {
             });
 
             if (error) throw error;
-
-            this.currentUserSubject.next(data.user);
             return { success: true };
         } catch (error) {
             console.error('Sign up error:', error);
@@ -67,8 +197,11 @@ export class AuthService {
 
     async signOut(): Promise<void> {
         try {
+            this.stopRefreshTimer();
             await this.supabaseService.supabase.auth.signOut();
             this.currentUserSubject.next(null);
+            this.currentSessionSubject.next(null);
+            this.currentRoleSubject.next('visitor');
         } catch (error) {
             console.error('Sign out error:', error);
             throw error;
@@ -79,8 +212,23 @@ export class AuthService {
         return this.currentUserSubject.value !== null;
     }
 
+    isSessionActive(): boolean {
+        const session = this.currentSessionSubject.value;
+        if (!session) return false;
+
+        const expiresAt = session.expires_at;
+        if (expiresAt) {
+            return Date.now() / 1000 < expiresAt;
+        }
+        return true;
+    }
+
     getCurrentUser(): User | null {
         return this.currentUserSubject.value;
+    }
+
+    getCurrentSession(): Session | null {
+        return this.currentSessionSubject.value;
     }
 
     getUserEmail(): string | null {
@@ -88,6 +236,41 @@ export class AuthService {
     }
 
     getUserName(): string | null {
-        return this.currentUserSubject.value?.user_metadata['name'] || null;
+        return this.currentUserSubject.value?.user_metadata?.['name'] || null;
+    }
+
+    getCurrentRole(): UserRole {
+        return this.currentRoleSubject.value;
+    }
+
+    hasRole(requiredRole: UserRole): boolean {
+        const roleHierarchy = { visitor: 0, editor: 1, admin: 2 };
+        const current = roleHierarchy[this.currentRoleSubject.value];
+        const required = roleHierarchy[requiredRole];
+        return current >= required;
+    }
+
+    canEdit(): boolean {
+        return this.hasRole('editor') || this.hasRole('admin');
+    }
+
+    isAdmin(): boolean {
+        return this.hasRole('admin');
+    }
+
+    isVisitor(): boolean {
+        return !this.isAuthenticated();
+    }
+
+    async refreshSession(): Promise<void> {
+        const { data: { session }, error } = await this.supabaseService.supabase.auth.getSession();
+        if (!error) {
+            this.currentUserSubject.next(session?.user ?? null);
+            this.currentSessionSubject.next(session);
+            if (session?.access_token) {
+                this.extractRoleFromJWT(session.access_token);
+                this.scheduleTokenRefresh(session.expires_at);
+            }
+        }
     }
 }

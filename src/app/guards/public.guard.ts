@@ -1,4 +1,4 @@
-/*src/app/guards/auth.guard.ts*/
+// src/app/guards/public.guard.ts
 import { Injectable } from '@angular/core';
 import { CanActivate, Router, UrlTree } from '@angular/router';
 import { AuthService } from '../services/auth.service';
@@ -7,26 +7,21 @@ import { Observable, map, take } from 'rxjs';
 @Injectable({
     providedIn: 'root'
 })
-export class AuthGuard implements CanActivate {
+export class PublicGuard implements CanActivate {
     constructor(
         private authService: AuthService,
         private router: Router
     ) { }
 
     canActivate(): Observable<boolean | UrlTree> | Promise<boolean | UrlTree> | boolean | UrlTree {
-        // Vérification synchrone rapide
-        if (this.authService.isAuthenticated()) {
-            return true;
-        }
-
-        // Attendre le user pour vérification asynchrone
         return this.authService.currentUser$.pipe(
             take(1),
             map(user => {
                 if (user) {
-                    return true;
+                    console.log('🔐 PublicGuard: Utilisateur déjà connecté, redirection vers /members');
+                    return this.router.parseUrl('/members');
                 }
-                return this.router.createUrlTree(['/login']);
+                return true;
             })
         );
     }
