@@ -1,3 +1,4 @@
+// src/app/components/contributions/monthly-contributions.component.ts
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
@@ -6,6 +7,7 @@ import { SettingsService } from '../../services/settings.service';
 import { SpaceNumberPipe } from '../../pipes/space-number.pipe';
 import { LoadingIndicatorComponent } from '../shared/loading-indicator.component';
 import { Contribution, Member, MonthStatus } from '../../models';
+import { AuthService } from '../../services/auth.service';
 
 @Component({
   selector: 'app-monthly-contributions',
@@ -34,15 +36,24 @@ export class MonthlyContributionsComponent implements OnInit {
 
   // Paiement groupé
   nbMoisAGrouper: number = 0;
-  selectedMois: number[] = []; // Stocke les numéros des mois sélectionnés
+  selectedMois: number[] = [];
+
+  // Rôle utilisateur
+  userRole: string = 'visitor';
+  canEdit = false;
+  isAdmin = false;
 
   private contributionsExistantes: Contribution[] = [];
 
   Math = Math;
 
-  constructor(private supabase: SupabaseService, private settingsService: SettingsService) {
+  constructor(
+    private supabase: SupabaseService,
+    private settingsService: SettingsService,
+    private authService: AuthService
+  ) {
     const startYear = 2026;
-    const endYear = startYear + 7; // 2026..2033
+    const endYear = startYear + 7;
     for (let year = startYear; year <= endYear; year++) {
       this.annees.push(year);
     }
@@ -50,8 +61,16 @@ export class MonthlyContributionsComponent implements OnInit {
   }
 
   async ngOnInit() {
+    await this.loadUserRole();
     this.itemsPerPage = this.settingsService.getSavedPageSize('pagination.pageSize.contributions', 10);
     await this.loadMembers();
+  }
+
+  async loadUserRole() {
+    this.userRole = this.authService.getCurrentRole();
+    this.canEdit = this.authService.canEdit();
+    this.isAdmin = this.authService.isAdmin();
+    console.log('👤 Rôle utilisateur dans cotisations:', this.userRole, 'canEdit:', this.canEdit);
   }
 
   async loadMembers() {
@@ -165,9 +184,13 @@ export class MonthlyContributionsComponent implements OnInit {
     }
   }
 
-  // Gestion de la sélection multiple
   toggleSelectMois(mois: MonthStatus) {
-    if (mois.paye) return; // Ne pas permettre la sélection des mois déjà payés
+    // ✅ Vérification des droits
+    if (!this.canEdit) {
+      alert('Vous n\'avez pas les droits pour modifier les cotisations');
+      return;
+    }
+    if (mois.paye) return;
 
     const index = this.selectedMois.indexOf(mois.mois);
     if (index === -1) {
@@ -182,23 +205,35 @@ export class MonthlyContributionsComponent implements OnInit {
   }
 
   selectionnerTous() {
+    if (!this.canEdit) {
+      alert('Vous n\'avez pas les droits pour modifier les cotisations');
+      return;
+    }
     this.selectedMois = this.moisStatus
       .filter(m => !m.paye)
       .map(m => m.mois);
   }
 
   deselectionnerTous() {
+    if (!this.canEdit) {
+      alert('Vous n\'avez pas les droits pour modifier les cotisations');
+      return;
+    }
     this.selectedMois = [];
   }
 
-  // Paiement groupé par nombre de mois
   async paiementGroupe() {
+    // ✅ Vérification des droits
+    if (!this.canEdit) {
+      alert('Vous n\'avez pas les droits pour effectuer des paiements');
+      return;
+    }
+
     if (this.nbMoisAGrouper <= 0) {
       alert('Veuillez sélectionner un nombre de mois');
       return;
     }
 
-    // Trouver les mois non payés les plus anciens
     const moisNonPayes = this.moisStatus
       .filter(m => !m.paye)
       .sort((a, b) => a.mois - b.mois);
@@ -219,9 +254,9 @@ export class MonthlyContributionsComponent implements OnInit {
     const moisNoms = moisAPayer.map(m => m.nom).join(', ');
 
     const confirmation = confirm(
-      `Paiement groupé pour :\n${moisNoms}\n\n` +
-      `Total : ${this.spaceNumber(totalMontant)} Ar\n\n` +
-      `Confirmer le paiement ?`
+      `📋 Paiement groupé pour :\n${moisNoms}\n\n` +
+      `💰 Total : ${this.spaceNumber(totalMontant)} Ar\n\n` +
+      `✅ Confirmer le paiement ?`
     );
 
     if (confirmation) {
@@ -229,8 +264,13 @@ export class MonthlyContributionsComponent implements OnInit {
     }
   }
 
-  // Paiement des mois sélectionnés manuellement
   async paiementSelectionMultiple() {
+    // ✅ Vérification des droits
+    if (!this.canEdit) {
+      alert('Vous n\'avez pas les droits pour effectuer des paiements');
+      return;
+    }
+
     if (this.selectedMois.length === 0) {
       alert('Veuillez sélectionner au moins un mois');
       return;
@@ -241,18 +281,17 @@ export class MonthlyContributionsComponent implements OnInit {
     const moisNoms = moisAPayer.map(m => m.nom).join(', ');
 
     const confirmation = confirm(
-      `Paiement des mois sélectionnés :\n${moisNoms}\n\n` +
-      `Total : ${this.spaceNumber(totalMontant)} Ar\n\n` +
-      `Confirmer le paiement ?`
+      `📋 Paiement des mois sélectionnés :\n${moisNoms}\n\n` +
+      `💰 Total : ${this.spaceNumber(totalMontant)} Ar\n\n` +
+      `✅ Confirmer le paiement ?`
     );
 
     if (confirmation) {
       await this.effectuerPaiementsMultiples(moisAPayer);
-      this.selectedMois = []; // Vider la sélection après paiement
+      this.selectedMois = [];
     }
   }
 
-  // Méthode commune pour effectuer plusieurs paiements
   async effectuerPaiementsMultiples(moisAPayer: MonthStatus[]) {
     const membre = this.membres.find(m => m.id === this.membreSelectionne);
     if (!membre || this.membreSelectionne === null) return;
@@ -278,45 +317,50 @@ export class MonthlyContributionsComponent implements OnInit {
         await this.supabase.addContribution(contribution);
       }
 
-      alert(`${moisAPayer.length} cotisation(s) enregistrée(s) avec succès !\nTotal: ${this.spaceNumber(moisAPayer.reduce((sum, m) => sum + m.montant, 0))} Ar`);
+      alert(`✅ ${moisAPayer.length} cotisation(s) enregistrée(s) avec succès !\n💰 Total: ${this.spaceNumber(moisAPayer.reduce((sum, m) => sum + m.montant, 0))} Ar`);
 
       this.nbMoisAGrouper = 0;
       await this.loadMonthlyStatus();
 
     } catch (error) {
       console.error('Erreur lors du paiement groupé:', error);
-      alert('Erreur lors du paiement groupé');
+      alert('❌ Erreur lors du paiement groupé');
     } finally {
       this.isLoading = false;
     }
   }
 
   async annulerPaiement(mois: MonthStatus) {
+    // ✅ Vérification des droits (seul admin peut annuler selon les politiques)
+    if (!this.isAdmin) {
+      alert('Seul un administrateur peut annuler un paiement');
+      return;
+    }
+
     if (!mois.paye || !mois.contributionId) {
       alert('Impossible d\'annuler : paiement introuvable.');
       return;
     }
 
-    const confirmation = confirm(`Annuler le paiement de ${mois.nom} ${this.anneeSelectionnee} ?`);
+    const confirmation = confirm(`⚠️ Annuler le paiement de ${mois.nom} ${this.anneeSelectionnee} ? Cette action est irréversible.`);
     if (!confirmation) return;
 
     try {
       this.isLoading = true;
       await this.supabase.deleteContribution(mois.contributionId);
-      alert('Paiement annulé avec succès.');
+      alert('✅ Paiement annulé avec succès.');
       await this.loadMonthlyStatus();
     } catch (error) {
       console.error('Erreur annulation paiement :', error);
-      alert('Erreur lors de l\'annulation du paiement');
+      alert('❌ Erreur lors de l\'annulation du paiement');
     } finally {
       this.isLoading = false;
     }
   }
 
-  // Méthodes utilitaires
   getMemberName(): string {
     const membre = this.membres.find(m => m.id === this.membreSelectionne);
-    return membre ? `${membre.nom} ${membre.prenom}` : 'Aucun membre sélectionné';
+    return membre ? `${membre.prenom} ${membre.nom}` : 'Aucun membre sélectionné';
   }
 
   getMemberCategorie(): string {

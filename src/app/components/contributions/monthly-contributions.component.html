@@ -1,22 +1,45 @@
+<!-- src/app/components/contributions/monthly-contributions.component.html -->
 <div class="container-fluid mt-4">
-  <h2><i class="fa-solid fa-calendar-days me-1"></i> Gestion des cotisations mensuelles</h2>
+  <!-- En-tête avec badge de rôle -->
+  <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
+    <h2 class="mb-0">
+      <i class="fa-solid fa-calendar-days me-2 text-primary"></i>
+      Gestion des cotisations mensuelles
+    </h2>
+    <div class="d-flex gap-2">
+      <span class="badge" [class.bg-success]="canEdit" [class.bg-secondary]="!canEdit">
+        <i class="fa-solid" [class.fa-pen]="canEdit" [class.fa-eye]="!canEdit"></i>
+        {{ canEdit ? 'Mode édition' : 'Lecture seule' }}
+      </span>
+      <span *ngIf="isAdmin" class="badge bg-warning text-dark">
+        <i class="fa-solid fa-crown"></i> Administrateur
+      </span>
+    </div>
+  </div>
 
-  <div class="row">
-    <div class="col-md-5 col-lg-4 mb-4">
-      <div class="card">
-        <div class="card-header" data-bs-theme="dark">
-          <h5 class="mb-0"><i class="fa-solid fa-users me-1"></i> Membres</h5>
+  <div class="row g-3">
+    <!-- Colonne gauche : Liste des membres -->
+    <div class="col-md-5 col-lg-4">
+      <div class="card border-0 shadow-sm h-100">
+        <div class="card-header bg-white border-0 pt-3">
+          <h5 class="mb-0">
+            <i class="fa-solid fa-users me-1 text-primary"></i>
+            Membres
+          </h5>
         </div>
         <div class="card-body">
+          <!-- Recherche -->
           <div class="mb-3">
             <div class="input-group">
-              <span class="input-group-text"><i class="fa-solid fa-magnifying-glass"></i></span>
+              <span class="input-group-text bg-white border-end-0">
+                <i class="fa-solid fa-magnifying-glass"></i>
+              </span>
               <input
                 type="text"
-                class="form-control"
+                class="form-control border-start-0 ps-0"
                 [(ngModel)]="filtreRecherche"
                 (ngModelChange)="onFiltreChange()"
-                placeholder="Rechercher par nom ou IM..."
+                placeholder="Rechercher par nom, prénom ou IM..."
               />
               <button
                 class="btn btn-outline-secondary"
@@ -29,11 +52,12 @@
             </div>
           </div>
 
-          <div class="row mb-3">
+          <!-- Pagination et lignes par page -->
+          <div class="row mb-3 g-2">
             <div class="col-6">
-              <label class="form-label">Lignes par page</label>
+              <label class="form-label small">Lignes par page</label>
               <select
-                class="form-select"
+                class="form-select form-select-sm"
                 [(ngModel)]="itemsPerPage"
                 (ngModelChange)="onItemsPerPageChange()"
               >
@@ -43,23 +67,28 @@
                 <option [value]="50">50</option>
               </select>
             </div>
-            <div class="col-6">
-              <label class="form-label">Résultats</label>
-              <div class="form-control-plaintext">
+            <div class="col-6 items-baseline">
+              <label class="form-label small">Résultats</label>
+              <div class="form-label small">
                 {{ (currentPage - 1) * itemsPerPage + 1 }} -
-                {{ Math.min(currentPage * itemsPerPage, membresFiltres.length) }} /
+                {{
+                  currentPage * itemsPerPage > membresFiltres.length
+                    ? membresFiltres.length
+                    : currentPage * itemsPerPage
+                }}
+                /
                 {{ membresFiltres.length }}
               </div>
             </div>
           </div>
 
+          <!-- Tableau des membres -->
           <div class="table-responsive" style="max-height: 500px; overflow-y: auto">
-            <table class="table table-hover">
+            <table class="table table-hover mb-0 align-middle">
               <thead class="table-light sticky-top">
                 <tr>
                   <th>IM</th>
                   <th>Nom complet</th>
-                  <th>Service</th>
                   <th>Cat.</th>
                 </tr>
               </thead>
@@ -71,35 +100,47 @@
                   style="cursor: pointer"
                 >
                   <td>
-                    <strong>{{ member.im }}</strong>
+                    <code class="fw-bold">{{ member.im }}</code>
                   </td>
-                  <td>{{ member.nom }} {{ member.prenom }}</td>
-                  <td>{{ member.service }}</td>
+                  <td>
+                    <i class="fa-regular fa-user me-1"></i>
+                    {{ member.prenom }} {{ member.nom }}
+                  </td>
                   <td>
                     <span
                       class="badge"
-                      [ngClass]="member.categorie === 'A' ? 'bg-primary' : 'bg-secondary'"
-                      >{{ member.categorie }}</span
+                      [class.bg-primary]="member.categorie === 'A'"
+                      [class.bg-secondary]="member.categorie !== 'A'"
                     >
+                      {{ member.categorie }}
+                    </span>
                   </td>
                 </tr>
                 <tr *ngIf="membresFiltres.length === 0">
-                  <td colspan="4" class="text-center text-muted">Aucun membre trouvé</td>
+                  <td colspan="3" class="text-center py-4">
+                    <i class="fa-solid fa-users-slash fa-2x mb-2 d-block"></i>
+                    Aucun membre trouvé
+                  </td>
                 </tr>
               </tbody>
             </table>
           </div>
 
+          <!-- Navigation pagination -->
           <nav *ngIf="totalPages > 1" class="mt-3">
-            <ul class="pagination justify-content-center">
+            <ul class="pagination justify-content-center pagination-sm">
               <li class="page-item" [class.disabled]="currentPage === 1">
-                <a class="page-link" (click)="changePage(currentPage - 1)">« Précédent</a>
+                <button class="page-link" (click)="changePage(currentPage - 1)">
+                  <i class="fa-solid fa-chevron-left"></i>
+                </button>
               </li>
               <li class="page-item disabled">
-                <span class="page-link">Page {{ currentPage }} / {{ totalPages }}</span>
+                <span class="page-link">{{ currentPage }} / {{ totalPages }}</span>
               </li>
               <li class="page-item" [class.disabled]="currentPage === totalPages">
-                <a class="page-link" (click)="changePage(currentPage + 1)">Suivant »</a>
+                <button class="page-link" (click)="changePage(currentPage + 1)">
+                  <i class="fa-solid fa-chevron-right"></i>
+                </button>
               </li>
             </ul>
           </nav>
@@ -107,157 +148,178 @@
       </div>
     </div>
 
+    <!-- Colonne droite : Gestion des cotisations -->
     <div class="col-md-7 col-lg-8">
-      <div class="card">
-        <div class="card-header bg-success text-white">
-          <h5 class="mb-0">
-            <i class="fa-solid fa-calendar-days me-1"></i> Cotisations - {{ getMemberName() }}
-            <span class="badge bg-light text-dark ms-2" *ngIf="membreSelectionne">
-              Catégorie {{ getMemberCategorie() }}
+      <div class="card border-0 shadow-sm">
+        <div class="card-header bg-white border-0 pt-3">
+          <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
+            <h5 class="mb-0">
+              <i class="fa-solid fa-calendar-days me-1 text-success"></i>
+              Cotisations - {{ getMemberName() }}
+              <span class="badge bg-secondary ms-2" *ngIf="membreSelectionne">
+                Catégorie {{ getMemberCategorie() }}
+              </span>
+            </h5>
+            <span *ngIf="!canEdit" class="badge bg-secondary">
+              <i class="fa-solid fa-lock me-1"></i> Lecture seule
             </span>
-          </h5>
+          </div>
         </div>
         <div class="card-body">
-          <div class="row mb-4">
-            <div class="col-md-4">
-              <label class="form-label">Année</label>
-              <select
-                [(ngModel)]="anneeSelectionnee"
-                (ngModelChange)="onAnneeChange()"
-                class="form-select"
-              >
-                <option *ngFor="let a of annees" [value]="a">{{ a }}</option>
-              </select>
+          <!-- Message si aucun membre sélectionné -->
+          <div *ngIf="!membreSelectionne" class="empty-state text-center py-5">
+            <div class="empty-state-icon mb-3">
+              <i class="fa-solid fa-users fa-3x"></i>
             </div>
-            <div class="col-md-4" *ngIf="membreSelectionne">
-              <label class="form-label">Paiement groupé</label>
-              <select [(ngModel)]="nbMoisAGrouper" class="form-select">
-                <option [value]="0">-- Sélectionner --</option>
-                <option [value]="1">01 mois</option>
-                <option [value]="2">02 mois</option>
-                <option [value]="3">03 mois</option>
-                <option [value]="4">04 mois</option>
-                <option [value]="6">06 mois</option>
-                <option [value]="12">12 mois</option>
-              </select>
-            </div>
-            <div class="col-md-4" *ngIf="membreSelectionne && nbMoisAGrouper > 0">
-              <label class="form-label">&nbsp;</label>
-              <button
-                class="btn btn-warning w-100"
-                (click)="paiementGroupe()"
-                [disabled]="isLoading"
-              >
-                <i class="fa-solid fa-money-bill-wave me-1"></i> Payer {{ nbMoisAGrouper }} mois ({{
-                  getMontantGroupe() | spaceNumber
-                }}
-                Ar)
-              </button>
-            </div>
+            <h5 class="mb-2">Aucun membre sélectionné</h5>
+            <p class="small mb-0">
+              <i class="fa-solid fa-hand-point-left me-1"></i>
+              Cliquez sur un membre dans la liste de gauche pour gérer ses cotisations
+            </p>
           </div>
 
-          <div class="alert alert-info mb-3" *ngIf="membreSelectionne">
-            <div class="d-flex justify-content-between align-items-center">
-              <div>
-                <strong><i class="fa-solid fa-thumbtack me-1"></i> Mode sélection :</strong> Cliquez
-                sur les mois pour les sélectionner
+          <!-- Contenu des cotisations -->
+          <ng-container *ngIf="membreSelectionne">
+            <!-- Année et paiement groupé -->
+            <div class="row g-2 mb-4">
+              <div class="col-md-4">
+                <label class="form-label small fw-bold">Année</label>
+                <select
+                  [(ngModel)]="anneeSelectionnee"
+                  (ngModelChange)="onAnneeChange()"
+                  class="form-select"
+                >
+                  <option *ngFor="let a of annees" [value]="a">{{ a }}</option>
+                </select>
               </div>
-              <div class="d-flex gap-2 flex-wrap justify-content-end">
+              <div class="col-md-4" *ngIf="canEdit">
+                <label class="form-label small fw-bold">Paiement groupé</label>
+                <select [(ngModel)]="nbMoisAGrouper" class="form-select">
+                  <option [value]="0">-- Sélectionner --</option>
+                  <option [value]="1">1 mois</option>
+                  <option [value]="2">2 mois</option>
+                  <option [value]="3">3 mois</option>
+                  <option [value]="4">4 mois</option>
+                  <option [value]="6">6 mois</option>
+                  <option [value]="12">12 mois</option>
+                </select>
+              </div>
+              <div class="col-md-4" *ngIf="canEdit && nbMoisAGrouper > 0">
+                <label class="form-label small fw-bold">&nbsp;</label>
                 <button
-                  class="btn btn-sm btn-primary"
-                  (click)="selectionnerTous()"
+                  class="btn btn-warning w-100"
+                  (click)="paiementGroupe()"
                   [disabled]="isLoading"
                 >
-                  <i class="fa-solid fa-check me-1"></i> Tous
-                </button>
-                <button
-                  class="btn btn-sm btn-secondary"
-                  (click)="deselectionnerTous()"
-                  [disabled]="isLoading"
-                >
-                  <i class="fa-solid fa-xmark me-1"></i> Aucun
-                </button>
-                <button
-                  class="btn btn-sm btn-warning"
-                  (click)="paiementSelectionMultiple()"
-                  [disabled]="selectedMois.length === 0 || isLoading"
-                >
-                  <i class="fa-solid fa-money-bill-wave me-1"></i> Payer
-                  {{ selectedMois.length }} mois ({{ getMontantSelection() | spaceNumber }} Ar)
+                  <i class="fa-solid fa-money-bill-wave me-1"></i>
+                  Payer {{ nbMoisAGrouper }} mois ({{ getMontantGroupe() | spaceNumber }} Ar)
                 </button>
               </div>
             </div>
-          </div>
 
-          <div *ngIf="membreSelectionne && moisStatus.length > 0" class="mt-3">
-            <div class="row">
-              <div class="col-md-3 col-sm-6 mb-3" *ngFor="let mois of moisStatus">
+            <!-- Barre d'actions sélection multiple -->
+            <div class="alert alert-info mb-3 py-2" *ngIf="canEdit">
+              <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
+                <div class="small">
+                  <i class="fa-solid fa-thumbtack me-1"></i>
+                  <strong>Mode sélection :</strong> Cliquez sur les mois pour les sélectionner
+                </div>
+                <div class="d-flex gap-2">
+                  <button
+                    class="btn btn-sm btn-outline-primary"
+                    (click)="selectionnerTous()"
+                    [disabled]="isLoading"
+                  >
+                    <i class="fa-solid fa-check me-1"></i> Tous
+                  </button>
+                  <button
+                    class="btn btn-sm btn-outline-secondary"
+                    (click)="deselectionnerTous()"
+                    [disabled]="isLoading"
+                  >
+                    <i class="fa-solid fa-xmark me-1"></i> Aucun
+                  </button>
+                  <button
+                    class="btn btn-sm btn-success"
+                    (click)="paiementSelectionMultiple()"
+                    [disabled]="selectedMois.length === 0 || isLoading"
+                  >
+                    <i class="fa-solid fa-money-bill-wave me-1"></i>
+                    Payer {{ selectedMois.length }} mois ({{ getMontantSelection() | spaceNumber }}
+                    Ar)
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <!-- Grille des mois -->
+            <div class="row g-2 mt-2">
+              <div class="col-md-3 col-sm-4 col-6" *ngFor="let mois of moisStatus">
                 <div
-                  class="card h-100"
-                  [ngClass]="{
-                    'bg-success text-white': mois.paye,
-                    'border-primary': !mois.paye && !isMoisSelected(mois),
-                    '': !mois.paye && isMoisSelected(mois),
-                  }"
-                  style="cursor: pointer; transition: all 0.3s ease"
+                  class="card month-card h-100"
+                  [class.paye]="mois.paye"
+                  [class.selected]="!mois.paye && isMoisSelected(mois)"
+                  [class.can-edit]="canEdit && !mois.paye"
+                  (click)="canEdit && !mois.paye ? toggleSelectMois(mois) : null"
                 >
-                  <div class="card-body text-center" (click)="toggleSelectMois(mois)">
-                    <h5 class="card-title">{{ mois.nom }}</h5>
-                    <p class="card-text">
+                  <div class="card-body text-center p-3">
+                    <div class="month-name">{{ mois.nom }}</div>
+                    <div class="month-amount">{{ mois.montant | spaceNumber }} Ar</div>
+                    <div class="month-status mt-2">
                       <ng-container *ngIf="mois.paye">
-                        <i class="fa-solid fa-check me-1"></i> Payé
-                        <div class="mt-2">
-                          <strong>{{ mois.montant | spaceNumber }} Ar</strong>
-                        </div>
-                        <div class="mt-2">
+                        <span class="badge bg-success w-100">
+                          <i class="fa-solid fa-check-circle me-1"></i> Payé
+                        </span>
+                        <div class="mt-2" *ngIf="isAdmin">
                           <button
-                            class="btn btn-sm btn-outline-light"
+                            class="btn btn-sm btn-outline-danger w-100"
                             (click)="annulerPaiement(mois); $event.stopPropagation()"
-                            [disabled]="isLoading || !mois.contributionId"
+                            [disabled]="isLoading"
                           >
-                            Annuler
+                            <i class="fa-solid fa-undo-alt me-1"></i> Annuler
                           </button>
                         </div>
                       </ng-container>
                       <ng-container *ngIf="!mois.paye">
-                        <ng-container *ngIf="isMoisSelected(mois); else nonSelectionne">
-                          <i class="fa-solid fa-circle text-warning me-1"></i> Sélectionné
-                        </ng-container>
-                        <ng-template #nonSelectionne>
-                          <i class="fa-solid fa-money-bill-wave me-1"></i> Non payé<br />
-                          <strong class="d-block mt-2">{{ mois.montant | spaceNumber }} Ar</strong>
-                          <small>Cliquez pour sélectionner</small>
-                        </ng-template>
+                        <span *ngIf="isMoisSelected(mois)" class="badge bg-warning text-dark w-100">
+                          <i class="fa-solid fa-check me-1"></i> Sélectionné
+                        </span>
+                        <span *ngIf="!isMoisSelected(mois)" class="badge bg-secondary w-100">
+                          <i class="fa-regular fa-circle me-1"></i> Non payé
+                        </span>
                       </ng-container>
-                    </p>
+                    </div>
                   </div>
                 </div>
               </div>
             </div>
 
+            <!-- Récapitulatif -->
             <div class="row mt-4">
               <div class="col-12">
-                <div class="alert alert-info">
-                  <div class="row">
-                    <div class="col-md-4">
-                      <strong
-                        ><i class="fa-solid fa-chart-pie me-1"></i> Récapitulatif
-                        {{ anneeSelectionnee }}</strong
-                      >
+                <div class="card bg-light border-0">
+                  <div class="card-body py-3">
+                    <div class="row text-center">
+                      <div class="col-md-4">
+                        <div class="small">Mois payés</div>
+                        <h4 class="mb-0 text-success">{{ getNbMoisPayes() }}/12</h4>
+                      </div>
+                      <div class="col-md-4">
+                        <div class="small">Mois restants</div>
+                        <h4 class="mb-0 text-warning">{{ getNbMoisRestants() }}/12</h4>
+                      </div>
+                      <div class="col-md-4">
+                        <div class="small">Total payé</div>
+                        <h4 class="mb-0 text-primary">{{ getTotalPaye() | spaceNumber }} Ar</h4>
+                      </div>
                     </div>
-                    <div class="col-md-3">Mois payés: {{ getNbMoisPayes() }}/12</div>
-                    <div class="col-md-3">Mois restants: {{ getNbMoisRestants() }}/12</div>
                   </div>
                 </div>
               </div>
             </div>
-          </div>
+          </ng-container>
 
-          <div *ngIf="!membreSelectionne" class="alert alert-info mt-4 text-center">
-            <i class="fa-solid fa-hand-point-left me-1"></i> Veuillez sélectionner un membre dans la
-            liste de gauche
-          </div>
-
+          <!-- Loader -->
           <app-loading-indicator
             *ngIf="isLoading"
             message="Chargement des données..."

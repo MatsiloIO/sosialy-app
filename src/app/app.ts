@@ -20,8 +20,12 @@ export class App implements OnInit {
   userName = '';
   userRole: string = 'visitor';
   private authSubscription: Subscription | null = null;
-
-  constructor(private authService: AuthService, private router: Router) { }
+  isLoading = true
+  constructor(private authService: AuthService, private router: Router) {
+    this.authService.loading$.subscribe(loading => {
+      this.isLoading = loading;
+    });
+  }
 
   ngOnInit() {
     this.initializeTheme();
@@ -41,15 +45,24 @@ export class App implements OnInit {
   }
 
   initializeAuth() {
+    // ✅ Attendre la fin du chargement avant d'afficher l'interface
+    this.authSubscription = this.authService.loading$.subscribe(loading => {
+      this.isLoading = loading;
+
+      // Une fois le chargement terminé, gérer les redirections
+      if (!loading) {
+        this.handleRedirectAfterLoad();
+      }
+    });
     this.authService.currentUser$.subscribe(user => {
       const wasAuthenticated = this.isAuthenticated;
       this.isAuthenticated = user !== null;
       this.userName = this.authService.getUserName() || '';
+
       // ✅ Si déconnecté, rediriger immédiatement vers login
       if (!user && wasAuthenticated) {
         this.router.navigate(['/login']);
       }
-      console.log('🔍 isAuthenticated:', this.isAuthenticated);
     });
 
     // Abonnement au rôle
@@ -57,7 +70,18 @@ export class App implements OnInit {
       this.userRole = role;
     });
   }
+  private handleRedirectAfterLoad() {
+    const currentUrl = this.router.url;
 
+    // Si connecté et sur login, rediriger vers members
+    if (this.isAuthenticated && currentUrl === '/login') {
+      this.router.navigate(['/members']);
+    }
+    // Si non connecté et pas sur login et pas sur public, rediriger vers login
+    else if (!this.isAuthenticated && currentUrl !== '/login' && currentUrl !== '/public/cotisations') {
+      this.router.navigate(['/login']);
+    }
+  }
   toggleTheme() {
     this.isDarkMode = !this.isDarkMode;
     localStorage.setItem(this.themeStorageKey, this.isDarkMode ? 'dark' : 'light');

@@ -1,43 +1,88 @@
+<!-- src/app/components/members/members-list.component.html -->
 <div class="container mt-4">
-  <h2><i class="fa-solid fa-users me-1"></i> Gestion des membres</h2>
+  <!-- En-tête avec badge de rôle -->
+  <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
+    <h2 class="mb-0">
+      <i class="fa-solid fa-users me-2 text-primary"></i>
+      Gestion des membres
+    </h2>
+    <div class="d-flex gap-2">
+      <span class="badge" [class.bg-success]="canEdit" [class.bg-secondary]="!canEdit">
+        <i class="fa-solid" [class.fa-pen]="canEdit" [class.fa-eye]="!canEdit"></i>
+        {{ canEdit ? 'Mode édition' : 'Lecture seule' }}
+      </span>
+      <span *ngIf="isAdmin" class="badge bg-warning text-dark">
+        <i class="fa-solid fa-crown"></i> Administrateur
+      </span>
+    </div>
+  </div>
 
-  <div class="card mb-4">
+  <!-- Formulaire d'ajout/modification (visible seulement si canEdit) -->
+  <div class="card border-0 shadow-sm mb-4" *ngIf="canEdit">
     <div class="card-body">
-      <h5>{{ editingMember ? 'Modifier' : 'Ajouter' }} un membre</h5>
-      <div class="row gy-2">
-        <div class="col-md-3">
-          <input [(ngModel)]="formData.nom" placeholder="Nom" class="form-control" />
+      <h5 class="mb-3">
+        <i
+          class="fa-solid"
+          [class.fa-user-plus]="!editingMember"
+          [class.fa-user-pen]="editingMember"
+        ></i>
+        {{ editingMember ? 'Modifier le membre' : 'Ajouter un membre' }}
+      </h5>
+      <!-- Champs du formulaire sur une seule ligne -->
+      <div class="row g-2">
+        <div class="col-md-4">
+          <input
+            [(ngModel)]="formData.nom"
+            placeholder="Nom"
+            class="form-control form-control-sm"
+          />
         </div>
-        <div class="col-md-3">
-          <input [(ngModel)]="formData.prenom" placeholder="Prénom" class="form-control" />
+        <div class="col-md-4">
+          <input
+            [(ngModel)]="formData.prenom"
+            placeholder="Prénom"
+            class="form-control form-control-sm"
+          />
         </div>
-        <div class="col-md-3">
-          <input [(ngModel)]="formData.im" placeholder="IM (matricule)" class="form-control" />
+        <div class="col-md-1">
+          <input [(ngModel)]="formData.im" placeholder="IM" class="form-control form-control-sm" />
         </div>
-        <div class="col-md-3">
-          <input [(ngModel)]="formData.service" placeholder="Service" class="form-control" />
+        <div class="col-md-1">
+          <input
+            [(ngModel)]="formData.service"
+            placeholder="Service"
+            class="form-control form-control-sm"
+          />
         </div>
         <div class="col-md-2">
-          <select [(ngModel)]="formData.categorie" class="form-select">
+          <select [(ngModel)]="formData.categorie" class="form-select form-select-sm">
             <option value="A">Catégorie A</option>
             <option value="B">Catégorie B</option>
           </select>
         </div>
       </div>
+      <!-- ✅ Boutons en bas -->
       <div class="mt-3">
-        <button (click)="saveMember()" class="btn btn-primary" [disabled]="isLoading">
+        <button (click)="saveMember()" class="btn btn-primary btn-sm" [disabled]="isLoading">
+          <i class="fa-solid" [class.fa-plus]="!editingMember" [class.fa-save]="editingMember"></i>
           {{ editingMember ? 'Modifier' : 'Ajouter' }}
         </button>
         <button
           *ngIf="editingMember"
           (click)="cancelEdit()"
-          class="btn btn-secondary ms-2"
+          class="btn btn-secondary btn-sm ms-2"
           [disabled]="isLoading"
         >
-          Annuler
+          <i class="fa-solid fa-xmark"></i> Annuler
         </button>
       </div>
     </div>
+  </div>
+
+  <!-- Message si mode lecture seule -->
+  <div *ngIf="!canEdit" class="alert alert-info mb-3">
+    <i class="fa-solid fa-info-circle me-2"></i>
+    Vous êtes en mode lecture seule. Vous ne pouvez pas modifier la liste des membres.
   </div>
 
   <app-loading-indicator
@@ -45,85 +90,152 @@
     message="Chargement des membres..."
   ></app-loading-indicator>
 
-  <div class="row mb-3 align-items-end">
-    <div class="col-md-4 mb-3 mb-md-0">
-      <label class="form-label">Rechercher</label>
-      <input
-        class="form-control"
-        type="text"
-        placeholder="Nom, prénom, IM, service..."
-        [(ngModel)]="filterText"
+  <!-- Filtres -->
+  <div class="row g-2 mb-3 align-items-end">
+    <div class="col-md-4">
+      <label class="form-label small fw-bold text-muted">Rechercher</label>
+      <div class="input-group input-group-sm">
+        <span class="input-group-text bg-white border-end-0">
+          <i class="fa-solid fa-magnifying-glass text-muted"></i>
+        </span>
+        <input
+          class="form-control border-start-0 ps-0"
+          type="text"
+          placeholder="Nom, prénom, IM, service..."
+          [(ngModel)]="filterText"
+          (ngModelChange)="applyFilter()"
+        />
+        <button
+          class="btn btn-outline-secondary"
+          (click)="filterText = ''; applyFilter()"
+          *ngIf="filterText"
+          type="button"
+        >
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+      </div>
+    </div>
+    <div class="col-md-3">
+      <label class="form-label small fw-bold text-muted">Catégorie</label>
+      <select
+        class="form-select form-select-sm"
+        [(ngModel)]="filterCategory"
         (ngModelChange)="applyFilter()"
-      />
-    </div>
-    <div class="col-md-3 mb-3 mb-md-0">
-      <label class="form-label">Catégorie</label>
-      <select class="form-select" [(ngModel)]="filterCategory" (ngModelChange)="applyFilter()">
-        <option value="all">Toutes</option>
-        <option value="A">A</option>
-        <option value="B">B</option>
+      >
+        <option value="all">Toutes les catégories</option>
+        <option value="A">Catégorie A</option>
+        <option value="B">Catégorie B</option>
       </select>
     </div>
-    <div class="col-md-3 mb-3 mb-md-0">
-      <label class="form-label">Lignes / page</label>
-      <select class="form-select" [(ngModel)]="pageSize" (ngModelChange)="onPageSizeChange()">
-        <option [value]="5">5</option>
-        <option [value]="10">10</option>
-        <option [value]="20">20</option>
+    <div class="col-md-3">
+      <label class="form-label small fw-bold text-muted">Lignes par page</label>
+      <select
+        class="form-select form-select-sm"
+        [(ngModel)]="pageSize"
+        (ngModelChange)="onPageSizeChange()"
+      >
+        <option [value]="5">5 lignes</option>
+        <option [value]="10">10 lignes</option>
+        <option [value]="20">20 lignes</option>
+        <option [value]="50">50 lignes</option>
       </select>
+    </div>
+    <div class="col-md-2">
+      <label class="form-label small fw-bold text-muted">&nbsp;</label>
+      <div class="text-muted small pt-1">
+        <i class="fa-regular fa-user"></i>
+        {{ filteredMembers.length }} membre(s)
+      </div>
     </div>
   </div>
 
-  <div class="table-responsive">
-    <table class="table table-striped">
-      <thead>
-        <tr>
-          <th>IM</th>
-          <th>Nom</th>
-          <th>Prénom</th>
-          <th>Service</th>
-          <th>Catégorie</th>
-          <th>Actions</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr *ngFor="let member of membersPage">
-          <td>{{ member.im }}</td>
-          <td>{{ member.nom }}</td>
-          <td>{{ member.prenom }}</td>
-          <td>{{ member.service }}</td>
-          <td>{{ member.categorie }}</td>
-          <td>
-            <button
-              (click)="editMember(member)"
-              class="btn btn-sm btn-warning me-2"
-              [disabled]="isLoading"
-            >
-              <i class="fa-solid fa-pen"></i>
-            </button>
-            <button
-              (click)="deleteMember(member.id)"
-              class="btn btn-sm btn-danger"
-              [disabled]="isLoading"
-            >
-              <i class="fa-solid fa-trash"></i>
-            </button>
-          </td>
-        </tr>
-        <tr *ngIf="membersPage.length === 0">
-          <td colspan="6" class="text-center text-muted py-4">Aucun membre trouvé</td>
-        </tr>
-      </tbody>
-    </table>
+  <!-- Tableau des membres -->
+  <div class="card border-0 shadow-sm">
+    <div class="table-responsive">
+      <table class="table table-hover mb-0 align-middle">
+        <thead class="table-light">
+          <tr>
+            <th>IM</th>
+            <th>Nom</th>
+            <th>Prénom</th>
+            <th>Service</th>
+            <th>Catégorie</th>
+            <th *ngIf="canEdit" class="text-center">Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let member of membersPage">
+            <td>
+              <code class="fw-bold">{{ member.im }}</code>
+            </td>
+            <td>{{ member.nom }}</td>
+            <td>{{ member.prenom }}</td>
+            <td>{{ member.service }}</td>
+            <td>
+              <span
+                class="badge"
+                [class.bg-primary]="member.categorie === 'A'"
+                [class.bg-secondary]="member.categorie === 'B'"
+              >
+                {{ member.categorie }}
+              </span>
+            </td>
+            <td *ngIf="canEdit" class="text-center">
+              <button
+                (click)="editMember(member)"
+                class="btn btn-sm btn-outline-warning me-1"
+                [disabled]="isLoading"
+                title="Modifier"
+              >
+                <i class="fa-solid fa-pen"></i>
+              </button>
+              <button
+                *ngIf="isAdmin"
+                (click)="deleteMember(member.id)"
+                class="btn btn-sm btn-outline-danger"
+                [disabled]="isLoading"
+                title="Supprimer"
+              >
+                <i class="fa-solid fa-trash"></i>
+              </button>
+              <span *ngIf="!isAdmin && canEdit" class="text-muted small">
+                <i class="fa-solid fa-lock"></i>Suppression admin
+              </span>
+            </td>
+          </tr>
+          <tr *ngIf="membersPage.length === 0">
+            <td colspan="6" class="text-center text-muted py-4">
+              <i class="fa-solid fa-users-slash fa-2x mb-2 d-block"></i>
+              Aucun membre trouvé
+            </td>
+          </tr>
+        </tbody>
+        <tfoot *ngIf="membersPage && membersPage.length > 0" class="table-light">
+          <tr>
+            <td colspan="5" class="small text-muted">
+              <i class="fa-regular fa-user me-1"></i>
+              Affichage de {{ membersPage.length }} membre(s) sur {{ filteredMembers.length }} total
+            </td>
+            <td *ngIf="canEdit" class="text-end">
+              <span class="badge bg-info text-dark">
+                <i class="fa-solid fa-pen me-1"></i>
+                {{ getCategoryACount() }} cat A
+              </span>
+            </td>
+          </tr>
+        </tfoot>
+      </table>
+    </div>
   </div>
 
+  <!-- Pagination -->
   <div class="d-flex justify-content-between align-items-center mt-3" *ngIf="totalPages > 1">
-    <div class="text-muted">Page {{ currentPage }} / {{ totalPages }}</div>
+    <div class="text-muted small">Page {{ currentPage }} / {{ totalPages }}</div>
     <nav>
       <ul class="pagination pagination-sm mb-0">
         <li class="page-item" [class.disabled]="currentPage === 1">
           <button class="page-link" type="button" (click)="changePage(currentPage - 1)">
-            Précédent
+            <i class="fa-solid fa-chevron-left"></i>
           </button>
         </li>
         <li
@@ -131,11 +243,13 @@
           *ngFor="let page of getPageArray()"
           [class.active]="currentPage === page"
         >
-          <button class="page-link" type="button" (click)="changePage(page)">{{ page }}</button>
+          <button class="page-link" type="button" (click)="changePage(page)">
+            {{ page }}
+          </button>
         </li>
         <li class="page-item" [class.disabled]="currentPage === totalPages">
           <button class="page-link" type="button" (click)="changePage(currentPage + 1)">
-            Suivant
+            <i class="fa-solid fa-chevron-right"></i>
           </button>
         </li>
       </ul>

@@ -1,3 +1,4 @@
+// src/app/components/cashier/cashier-dashboard.component.ts
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
@@ -5,6 +6,7 @@ import { SupabaseService } from '../../services/supabase.service';
 import { SpaceNumberPipe } from '../../pipes/space-number.pipe';
 import { LoadingIndicatorComponent } from '../shared/loading-indicator.component';
 import { Expense, ExpenseForm, OtherRevenue, OtherRevenueForm } from '../../models';
+import { AuthService } from '../../services/auth.service';
 
 @Component({
   selector: 'app-cashier-dashboard',
@@ -36,6 +38,11 @@ export class CashierDashboardComponent implements OnInit {
   depensesParCategorie: { [key: string]: number } = {};
   evolutionMensuelle: any[] = [];
 
+  // Rôle utilisateur
+  userRole: string = 'visitor';
+  canEdit = false;
+  isAdmin = false;
+
   // États de chargement
   loading = {
     recettes: true,
@@ -54,11 +61,22 @@ export class CashierDashboardComponent implements OnInit {
   expenseCategories: Array<{ id: number; name: string }> = [];
   revenueCategories: Array<{ id: number; name: string }> = [];
 
-  constructor(private supabase: SupabaseService) { }
+  constructor(
+    private supabase: SupabaseService,
+    private authService: AuthService
+  ) { }
 
   async ngOnInit() {
+    await this.loadUserRole();
     await this.loadCategories();
     await this.loadAll();
+  }
+
+  async loadUserRole() {
+    this.userRole = this.authService.getCurrentRole();
+    this.canEdit = this.authService.canEdit();
+    this.isAdmin = this.authService.isAdmin();
+    console.log('👤 Rôle utilisateur dans caisse:', this.userRole, 'canEdit:', this.canEdit);
   }
 
   async loadCategories() {
@@ -141,7 +159,7 @@ export class CashierDashboardComponent implements OnInit {
     this.loading.graphiques = true;
 
     try {
-      // Analyse par catégorie de dépenses (utilise category_id si présent)
+      // Analyse par catégorie de dépenses
       this.depensesParCategorie = {};
       this.expenses.forEach(expense => {
         const catName = this.getCategoryName(expense, 'expense');
@@ -184,6 +202,12 @@ export class CashierDashboardComponent implements OnInit {
   }
 
   async addExpense() {
+    // ✅ Vérification des droits
+    if (!this.canEdit) {
+      alert('Vous n\'avez pas les droits pour ajouter une dépense');
+      return;
+    }
+
     if (!this.expenseForm.date || !this.expenseForm.libelle || this.expenseForm.montant <= 0) {
       alert('Veuillez remplir tous les champs');
       return;
@@ -206,6 +230,12 @@ export class CashierDashboardComponent implements OnInit {
   }
 
   async addRevenue() {
+    // ✅ Vérification des droits
+    if (!this.canEdit) {
+      alert('Vous n\'avez pas les droits pour ajouter une recette');
+      return;
+    }
+
     if (!this.revenueForm.date || !this.revenueForm.libelle || this.revenueForm.montant <= 0) {
       alert('Veuillez remplir tous les champs');
       return;
@@ -228,7 +258,13 @@ export class CashierDashboardComponent implements OnInit {
   }
 
   async deleteExpense(id: number) {
-    if (!confirm('Supprimer cette dépense ?')) return;
+    // ✅ Vérification des droits (seul admin peut supprimer selon politiques)
+    if (!this.isAdmin && !this.canEdit) {
+      alert('Vous n\'avez pas les droits pour supprimer une dépense');
+      return;
+    }
+
+    if (!confirm('⚠️ Supprimer cette dépense définitivement ?')) return;
 
     this.loading.actions = true;
 
@@ -246,7 +282,13 @@ export class CashierDashboardComponent implements OnInit {
   }
 
   async deleteRevenue(id: number) {
-    if (!confirm('Supprimer cette recette ?')) return;
+    // ✅ Vérification des droits (seul admin peut supprimer selon politiques)
+    if (!this.isAdmin && !this.canEdit) {
+      alert('Vous n\'avez pas les droits pour supprimer une recette');
+      return;
+    }
+
+    if (!confirm('⚠️ Supprimer cette recette définitivement ?')) return;
 
     this.loading.actions = true;
 
@@ -290,7 +332,6 @@ export class CashierDashboardComponent implements OnInit {
   }
 
   getCategoryName(item: any, type: 'expense' | 'revenue' = 'expense'): string {
-    // If legacy text exists, prefer it
     if (item.categorie) return item.categorie;
     const id = item.category_id ?? item.category_id;
     const list = type === 'expense' ? this.expenseCategories : this.revenueCategories;

@@ -1,67 +1,112 @@
+<!-- src/app/components/cashier/cashier-dashboard.component.html -->
 <div class="container mt-4">
-  <h2><i class="fa-solid fa-chart-pie me-1"></i> Tableau de bord - Caisse sociale</h2>
+  <!-- En-tête avec badge de rôle -->
+  <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
+    <h2 class="mb-0">
+      <i class="fa-solid fa-chart-pie me-2 text-primary"></i>
+      Tableau de bord - Caisse sociale
+    </h2>
+    <div class="d-flex gap-2">
+      <span class="badge" [ngClass]="canEdit ? 'bg-success' : 'bg-secondary'">
+        <i class="fa-solid" [ngClass]="canEdit ? 'fa-pen' : 'fa-eye'"></i>
+        {{ canEdit ? 'Mode édition' : 'Lecture seule' }}
+      </span>
+      <span *ngIf="isAdmin" class="badge bg-warning text-dark">
+        <i class="fa-solid fa-crown"></i> Administrateur
+      </span>
+    </div>
+  </div>
 
-  <div class="row mb-4">
+  <!-- Cartes de synthèse -->
+  <div class="row mb-4 g-3">
     <div class="col-md-4">
-      <div class="card text-white bg-success">
+      <div class="card h-100 border-0 shadow-sm">
         <div class="card-body">
-          <h5>Total Recettes</h5>
-          <div *ngIf="loading.recettes; else recettesContent">
-            <div class="placeholder-glow">
-              <h2 class="placeholder col-8"></h2>
+          <div class="d-flex justify-content-between align-items-start">
+            <div>
+              <h6 class="mb-1">Total Recettes</h6>
+              <div *ngIf="loading.recettes; else recettesContent">
+                <div class="placeholder-glow">
+                  <h3 class="placeholder col-8"></h3>
+                </div>
+              </div>
+              <ng-template #recettesContent>
+                <h3 class="text-success mb-0">{{ totalRecettes | spaceNumber }} Ar</h3>
+                <small class="">Cotisations: {{ totalCotisations | spaceNumber }} Ar</small>
+                <br />
+                <small class="">Autres: {{ totalOtherRevenues | spaceNumber }} Ar</small>
+              </ng-template>
             </div>
-            <p class="placeholder-glow">
-              <span class="placeholder col-6"></span>
-            </p>
+            <div class="icon-circle bg-success bg-opacity-10 p-3 rounded-3">
+              <i class="fa-solid fa-circle-dollar-to-slot fa-2x text-success"></i>
+            </div>
           </div>
-          <ng-template #recettesContent>
-            <h2 class="text-primary">{{ totalRecettes | spaceNumber }} Ar</h2>
-            <small>Cotisations: {{ totalCotisations | spaceNumber }} Ar</small><br />
-            <small>Autres recettes: {{ totalOtherRevenues | spaceNumber }} Ar</small>
-          </ng-template>
         </div>
       </div>
     </div>
 
     <div class="col-md-4">
-      <div class="card text-white bg-danger">
+      <div class="card h-100 border-0 shadow-sm">
         <div class="card-body">
-          <h5>Total Dépenses</h5>
-          <div *ngIf="loading.depenses; else depensesContent">
-            <div class="placeholder-glow">
-              <h2 class="placeholder col-8"></h2>
+          <div class="d-flex justify-content-between align-items-start">
+            <div>
+              <h6 class="mb-1">Total Dépenses</h6>
+              <div *ngIf="loading.depenses; else depensesContent">
+                <div class="placeholder-glow">
+                  <h3 class="placeholder col-8"></h3>
+                </div>
+              </div>
+              <ng-template #depensesContent>
+                <h3 class="text-danger mb-0">{{ totalDepenses | spaceNumber }} Ar</h3>
+              </ng-template>
+            </div>
+            <div class="icon-circle bg-danger bg-opacity-10 p-3 rounded-3">
+              <i class="fa-solid fa-cart-shopping fa-2x text-danger"></i>
             </div>
           </div>
-          <ng-template #depensesContent>
-            <h2 class="text-warning">{{ totalDepenses | spaceNumber }} Ar</h2>
-          </ng-template>
         </div>
       </div>
     </div>
 
     <div class="col-md-4">
-      <div class="card text-white" [ngClass]="solde > 0 ? 'bg-primary' : 'bg-warning'">
+      <div class="card h-100 border-0 shadow-sm">
         <div class="card-body">
-          <h5>Solde</h5>
-          <div *ngIf="loading.solde; else soldeContent">
-            <div class="placeholder-glow">
-              <h2 class="placeholder col-8"></h2>
+          <div class="d-flex justify-content-between align-items-start">
+            <div>
+              <h6 class="mb-1">Solde</h6>
+              <div *ngIf="loading.solde; else soldeContent">
+                <div class="placeholder-glow">
+                  <h3 class="placeholder col-8"></h3>
+                </div>
+              </div>
+              <ng-template #soldeContent>
+                <h3 [class]="solde >= 0 ? 'text-primary' : 'text-danger'" class="mb-0">
+                  {{ solde | spaceNumber }} Ar
+                </h3>
+              </ng-template>
+            </div>
+            <div
+              class="icon-circle"
+              [ngClass]="solde >= 0 ? 'bg-primary bg-opacity-10' : 'bg-danger bg-opacity-10'"
+              class="p-3 rounded-3"
+            >
+              <i
+                class="fa-solid fa-scale-balanced fa-2x"
+                [class.text-primary]="solde >= 0"
+                [class.text-danger]="solde < 0"
+              ></i>
             </div>
           </div>
-          <ng-template #soldeContent>
-            <h2 [class]="solde <= 0 ? 'text-danger' : 'text-success'">
-              {{ solde | spaceNumber }} Ar
-            </h2>
-          </ng-template>
         </div>
       </div>
     </div>
   </div>
 
-  <ul class="nav nav-tabs mb-3">
+  <!-- Onglets -->
+  <ul class="nav nav-tabs mb-3 border-0 gap-2">
     <li class="nav-item">
       <button
-        class="nav-link"
+        class="nav-link rounded-3"
         [class.active]="activeTab === 'depenses'"
         (click)="switchTab('depenses')"
       >
@@ -70,7 +115,7 @@
     </li>
     <li class="nav-item">
       <button
-        class="nav-link"
+        class="nav-link rounded-3"
         [class.active]="activeTab === 'recettes'"
         (click)="switchTab('recettes')"
       >
@@ -79,7 +124,7 @@
     </li>
     <li class="nav-item">
       <button
-        class="nav-link"
+        class="nav-link rounded-3"
         [class.active]="activeTab === 'graphiques'"
         (click)="switchTab('graphiques')"
       >
@@ -88,13 +133,23 @@
     </li>
   </ul>
 
+  <!-- Onglet Dépenses -->
   <div *ngIf="activeTab === 'depenses'">
-    <div class="card mb-3">
+    <!-- Formulaire d'ajout (visible seulement si canEdit) -->
+    <div *ngIf="canEdit" class="card mb-3 border-0 shadow-sm">
       <div class="card-body">
-        <h5>Ajouter une dépense</h5>
-        <div class="row gy-2">
+        <h5 class="mb-3">
+          <i class="fa-solid fa-plus-circle me-1 text-success"></i>
+          Ajouter une dépense
+        </h5>
+        <div class="row g-2">
           <div class="col-md-2">
-            <input [(ngModel)]="expenseForm.date" type="date" class="form-control" />
+            <input
+              [(ngModel)]="expenseForm.date"
+              type="date"
+              class="form-control"
+              placeholder="Date"
+            />
           </div>
           <div class="col-md-4">
             <input [(ngModel)]="expenseForm.libelle" placeholder="Libellé" class="form-control" />
@@ -108,14 +163,14 @@
             />
           </div>
           <div class="col-md-3">
-            <select [(ngModel)]="expenseForm.category_id" class="form-control">
+            <select [(ngModel)]="expenseForm.category_id" class="form-select">
               <option *ngFor="let cat of expenseCategories" [value]="cat.id">{{ cat.name }}</option>
             </select>
           </div>
           <div class="col-md-1">
             <button
               (click)="addExpense()"
-              class="btn btn-primary w-100"
+              class="btn btn-success w-100"
               [disabled]="loading.actions"
             >
               <span *ngIf="loading.actions" class="spinner-border spinner-border-sm me-1"></span>
@@ -126,35 +181,46 @@
       </div>
     </div>
 
-    <div class="card">
-      <div class="card-header bg-success" data-bs-theme="dark">
-        <h5 class="mb-0">Liste des dépenses</h5>
+    <!-- Liste des dépenses -->
+    <div class="card border-0 shadow-sm">
+      <div class="card-header bg-white border-0 pt-3 pb-0">
+        <h5 class="mb-0">
+          <i class="fa-solid fa-list me-1"></i>
+          Liste des dépenses
+        </h5>
       </div>
       <div class="card-body p-0">
         <div *ngIf="loading.depensesListe" class="p-4">
           <app-loading-indicator message="Chargement des dépenses..."></app-loading-indicator>
         </div>
         <div class="table-responsive" *ngIf="!loading.depensesListe">
-          <table class="table table-striped mb-0">
-            <thead>
+          <table class="table table-hover mb-0 align-middle">
+            <thead class="table-light">
               <tr>
                 <th>Date</th>
                 <th>Libellé</th>
                 <th>Catégorie</th>
                 <th class="text-end">Montant</th>
-                <th>Action</th>
+                <th *ngIf="canEdit" class="text-center">Action</th>
               </tr>
             </thead>
             <tbody>
               <tr *ngFor="let e of expenses">
-                <td>{{ e.date | date: 'dd/MM/yyyy' }}</td>
-                <td>{{ e.libelle }}</td>
-                <td>{{ getCategoryName(e, 'expense') }}</td>
-                <td class="text-end">{{ e.montant | spaceNumber }} Ar</td>
                 <td>
+                  <i class="fa-regular fa-calendar me-1"></i>
+                  {{ e.date | date: 'dd/MM/yyyy' }}
+                </td>
+                <td>{{ e.libelle }}</td>
+                <td>
+                  <span class="badge bg-secondary bg-opacity-10 text-secondary">
+                    {{ getCategoryName(e, 'expense') }}
+                  </span>
+                </td>
+                <td class="text-end fw-bold text-danger">{{ e.montant | spaceNumber }} Ar</td>
+                <td *ngIf="canEdit" class="text-center">
                   <button
                     (click)="deleteExpense(e.id)"
-                    class="btn btn-sm btn-danger"
+                    class="btn btn-sm btn-outline-danger"
                     [disabled]="loading.actions"
                   >
                     <i class="fa-solid fa-trash"></i>
@@ -162,14 +228,17 @@
                 </td>
               </tr>
               <tr *ngIf="expenses.length === 0">
-                <td colspan="5" class="text-center text-muted py-4">Aucune dépense enregistrée</td>
+                <td colspan="5" class="text-center py-4">
+                  <i class="fa-solid fa-inbox fa-2x mb-2 d-block"></i>
+                  Aucune dépense enregistrée
+                </td>
               </tr>
             </tbody>
-            <tfoot *ngIf="expenses.length > 0">
-              <tr class="table-info fw-bold">
+            <tfoot *ngIf="expenses.length > 0" class="table-light">
+              <tr class="fw-bold">
                 <td colspan="3" class="text-end">Total :</td>
-                <td class="text-end">{{ totalDepensesListe | spaceNumber }} Ar</td>
-                <td></td>
+                <td class="text-end text-danger">{{ totalDepensesListe | spaceNumber }} Ar</td>
+                <td *ngIf="canEdit"></td>
               </tr>
             </tfoot>
           </table>
@@ -178,13 +247,23 @@
     </div>
   </div>
 
+  <!-- Onglet Autres recettes -->
   <div *ngIf="activeTab === 'recettes'">
-    <div class="card mb-3">
+    <!-- Formulaire d'ajout (visible seulement si canEdit) -->
+    <div *ngIf="canEdit" class="card mb-3 border-0 shadow-sm">
       <div class="card-body">
-        <h5>Ajouter une autre recette</h5>
-        <div class="row gy-2">
+        <h5 class="mb-3">
+          <i class="fa-solid fa-plus-circle me-1 text-success"></i>
+          Ajouter une recette
+        </h5>
+        <div class="row g-2">
           <div class="col-md-2">
-            <input [(ngModel)]="revenueForm.date" type="date" class="form-control" />
+            <input
+              [(ngModel)]="revenueForm.date"
+              type="date"
+              class="form-control"
+              placeholder="Date"
+            />
           </div>
           <div class="col-md-4">
             <input [(ngModel)]="revenueForm.libelle" placeholder="Libellé" class="form-control" />
@@ -198,14 +277,14 @@
             />
           </div>
           <div class="col-md-3">
-            <select [(ngModel)]="revenueForm.category_id" class="form-control">
+            <select [(ngModel)]="revenueForm.category_id" class="form-select">
               <option *ngFor="let cat of revenueCategories" [value]="cat.id">{{ cat.name }}</option>
             </select>
           </div>
           <div class="col-md-1">
             <button
               (click)="addRevenue()"
-              class="btn btn-primary w-100"
+              class="btn btn-success w-100"
               [disabled]="loading.actions"
             >
               <span *ngIf="loading.actions" class="spinner-border spinner-border-sm me-1"></span>
@@ -216,35 +295,46 @@
       </div>
     </div>
 
-    <div class="card">
-      <div class="card-header" data-bs-theme="dark">
-        <h5 class="mb-0">Liste des autres recettes</h5>
+    <!-- Liste des recettes -->
+    <div class="card border-0 shadow-sm">
+      <div class="card-header bg-white border-0 pt-3 pb-0">
+        <h5 class="mb-0">
+          <i class="fa-solid fa-list me-1"></i>
+          Liste des autres recettes
+        </h5>
       </div>
       <div class="card-body p-0">
         <div *ngIf="loading.recettesListe" class="p-4">
           <app-loading-indicator message="Chargement des recettes..."></app-loading-indicator>
         </div>
         <div class="table-responsive" *ngIf="!loading.recettesListe">
-          <table class="table table-striped mb-0">
-            <thead>
+          <table class="table table-hover mb-0 align-middle">
+            <thead class="table-light">
               <tr>
                 <th>Date</th>
                 <th>Libellé</th>
                 <th>Catégorie</th>
                 <th class="text-end">Montant</th>
-                <th>Action</th>
+                <th *ngIf="canEdit" class="text-center">Action</th>
               </tr>
             </thead>
             <tbody>
               <tr *ngFor="let r of revenuesPage">
-                <td>{{ r.date | date: 'dd/MM/yyyy' }}</td>
-                <td>{{ r.libelle }}</td>
-                <td>{{ getCategoryName(r, 'revenue') }}</td>
-                <td class="text-end">{{ r.montant | spaceNumber }} Ar</td>
                 <td>
+                  <i class="fa-regular fa-calendar me-1"></i>
+                  {{ r.date | date: 'dd/MM/yyyy' }}
+                </td>
+                <td>{{ r.libelle }}</td>
+                <td>
+                  <span class="badge bg-success bg-opacity-10 text-success">
+                    {{ getCategoryName(r, 'revenue') }}
+                  </span>
+                </td>
+                <td class="text-end fw-bold text-success">{{ r.montant | spaceNumber }} Ar</td>
+                <td *ngIf="canEdit" class="text-center">
                   <button
                     (click)="deleteRevenue(r.id)"
-                    class="btn btn-sm btn-danger"
+                    class="btn btn-sm btn-outline-danger"
                     [disabled]="loading.actions"
                   >
                     <i class="fa-solid fa-trash"></i>
@@ -252,25 +342,28 @@
                 </td>
               </tr>
               <tr *ngIf="revenues.length === 0">
-                <td colspan="5" class="text-center text-muted py-4">
+                <td colspan="5" class="text-center py-4">
+                  <i class="fa-solid fa-inbox fa-2x mb-2 d-block"></i>
                   Aucune autre recette enregistrée
                 </td>
               </tr>
             </tbody>
-            <tfoot *ngIf="revenues.length > 0">
-              <tr class="table-info fw-bold">
+            <tfoot *ngIf="revenues.length > 0" class="table-light">
+              <tr class="fw-bold">
                 <td colspan="3" class="text-end">Total :</td>
-                <td class="text-end">{{ totalRecettesListe | spaceNumber }} Ar</td>
-                <td></td>
+                <td class="text-end text-success">{{ totalRecettesListe | spaceNumber }} Ar</td>
+                <td *ngIf="canEdit"></td>
               </tr>
             </tfoot>
           </table>
         </div>
+
+        <!-- Pagination -->
         <div
-          class="d-flex justify-content-between align-items-center p-3"
+          class="d-flex justify-content-between align-items-center p-3 border-top"
           *ngIf="revenueTotalPages > 1"
         >
-          <div class="text-muted">Page {{ revenueCurrentPage }} / {{ revenueTotalPages }}</div>
+          <div class="small">Page {{ revenueCurrentPage }} / {{ revenueTotalPages }}</div>
           <nav>
             <ul class="pagination pagination-sm mb-0">
               <li class="page-item" [class.disabled]="revenueCurrentPage === 1">
@@ -279,7 +372,7 @@
                   type="button"
                   (click)="changeRevenuePage(revenueCurrentPage - 1)"
                 >
-                  Précédent
+                  <i class="fa-solid fa-chevron-left"></i>
                 </button>
               </li>
               <li
@@ -297,7 +390,7 @@
                   type="button"
                   (click)="changeRevenuePage(revenueCurrentPage + 1)"
                 >
-                  Suivant
+                  <i class="fa-solid fa-chevron-right"></i>
                 </button>
               </li>
             </ul>
@@ -307,13 +400,15 @@
     </div>
   </div>
 
+  <!-- Onglet Graphiques -->
   <div *ngIf="activeTab === 'graphiques'">
-    <div class="row">
+    <div class="row g-3">
       <div class="col-md-6">
-        <div class="card">
-          <div class="card-header" data-bs-theme="dark">
+        <div class="card border-0 shadow-sm h-100">
+          <div class="card-header bg-white border-0 pt-3">
             <h5 class="mb-0">
-              <i class="fa-solid fa-chart-pie me-1"></i> Répartition des dépenses par catégorie
+              <i class="fa-solid fa-chart-pie me-1 text-info"></i>
+              Répartition des dépenses par catégorie
             </h5>
           </div>
           <div class="card-body">
@@ -324,20 +419,18 @@
             </div>
             <ng-template #graphiqueDepenses>
               <div *ngFor="let cat of depensesParCategorie | keyvalue" class="mb-3">
-                <div class="d-flex justify-content-between">
+                <div class="d-flex justify-content-between small mb-1">
                   <span>{{ cat.key }}</span>
                   <span class="fw-bold">{{ cat.value | spaceNumber }} Ar</span>
                 </div>
-                <div class="progress">
+                <div class="progress" style="height: 8px; border-radius: 4px">
                   <div
                     class="progress-bar bg-info"
                     [style.width]="(cat.value / totalDepenses) * 100 + '%'"
                     [attr.aria-valuenow]="(cat.value / totalDepenses) * 100"
                     aria-valuemin="0"
                     aria-valuemax="100"
-                  >
-                    {{ (cat.value / totalDepenses) * 100 | number: '1.0-0' }}%
-                  </div>
+                  ></div>
                 </div>
               </div>
             </ng-template>
@@ -346,10 +439,11 @@
       </div>
 
       <div class="col-md-6">
-        <div class="card">
-          <div class="card-header" data-bs-theme="dark">
+        <div class="card border-0 shadow-sm h-100">
+          <div class="card-header bg-white border-0 pt-3">
             <h5 class="mb-0">
-              <i class="fa-solid fa-chart-line me-1"></i> Évolution mensuelle (3 derniers mois)
+              <i class="fa-solid fa-chart-line me-1 text-primary"></i>
+              Évolution mensuelle (3 derniers mois)
             </h5>
           </div>
           <div class="card-body">
@@ -360,30 +454,26 @@
             </div>
             <ng-template #graphiqueEvolution>
               <div *ngFor="let mois of evolutionMensuelle" class="mb-3">
-                <div class="d-flex justify-content-between">
-                  <span>{{ mois.mois }}</span>
-                  <span class="fw-bold text-success">{{ mois.recettes | spaceNumber }} Ar</span>
-                  <span class="fw-bold text-danger">{{ mois.depenses | spaceNumber }} Ar</span>
+                <div class="d-flex justify-content-between small mb-1">
+                  <span class="fw-bold">{{ mois.mois }}</span>
+                  <div>
+                    <span class="text-success me-2">+{{ mois.recettes | spaceNumber }}</span>
+                    <span class="text-danger">-{{ mois.depenses | spaceNumber }}</span>
+                  </div>
                 </div>
-                <div class="progress" style="height: 25px">
+                <div class="progress" style="height: 8px; border-radius: 4px">
                   <div
                     class="progress-bar bg-success"
-                    [style.width]="(mois.recettes / (mois.recettes + mois.depenses)) * 100 + '%'"
-                    [attr.aria-valuenow]="(mois.recettes / (mois.recettes + mois.depenses)) * 100"
-                    aria-valuemin="0"
-                    aria-valuemax="100"
-                  >
-                    Recettes: {{ mois.recettes | spaceNumber }}
-                  </div>
+                    [style.width]="
+                      (mois.recettes / (mois.recettes + mois.depenses || 1)) * 100 + '%'
+                    "
+                  ></div>
                   <div
                     class="progress-bar bg-danger"
-                    [style.width]="(mois.depenses / (mois.recettes + mois.depenses)) * 100 + '%'"
-                    [attr.aria-valuenow]="(mois.depenses / (mois.recettes + mois.depenses)) * 100"
-                    aria-valuemin="0"
-                    aria-valuemax="100"
-                  >
-                    Dépenses: {{ mois.depenses | spaceNumber }}
-                  </div>
+                    [style.width]="
+                      (mois.depenses / (mois.recettes + mois.depenses || 1)) * 100 + '%'
+                    "
+                  ></div>
                 </div>
               </div>
             </ng-template>

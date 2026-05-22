@@ -1,3 +1,4 @@
+/*src/app/components/cashier/cashier-dashboard.component.css*/
 .placeholder-glow .placeholder {
   background-color: rgba(255,255,255,0.3);
   min-height: 2rem;
@@ -41,4 +42,57 @@
   .col-md-1 {
     margin-bottom: 0.125rem;
   }
+}
+
+/* Styles supplémentaires pour le nouveau design */
+
+.icon-circle {
+  width: 60px;
+  height: 60px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.nav-tabs .nav-link {
+  border: none;
+  color: var(--text-color);
+  padding: 10px 20px;
+  transition: all 0.2s ease;
+}
+
+.nav-tabs .nav-link:hover {
+  background: var(--surface-alt);
+}
+
+.nav-tabs .nav-link.active {
+  background: var(--primary);
+  color: white;
+}
+
+.table-hover tbody tr:hover {
+  background-color: rgba(37, 99, 235, 0.05);
+}
+
+.badge {
+  font-weight: 500;
+  padding: 5px 12px;
+}
+
+.progress {
+  background-color: var(--border-color);
+}
+
+.shadow-sm {
+  box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+}
+
+/* Animation pour les cartes */
+.card {
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.08) !important;
 }

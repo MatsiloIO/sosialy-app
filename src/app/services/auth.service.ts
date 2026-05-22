@@ -19,11 +19,18 @@ export class AuthService {
     private currentRoleSubject = new BehaviorSubject<UserRole>('visitor');
     public currentRole$ = this.currentRoleSubject.asObservable();
 
+    // ✅ Ajouter un subject pour l'état de chargement
+    private loadingSubject = new BehaviorSubject<boolean>(true);
+    public loading$ = this.loadingSubject.asObservable();
+
     private refreshTimer: any;
 
     constructor(private supabaseService: SupabaseService) {
         this.loadUser();
+        this.setupAuthListener();
+    }
 
+    private setupAuthListener() {
         this.supabaseService.supabase.auth.onAuthStateChange((event, session) => {
             console.log('Auth state changed:', event, session?.user?.email);
             this.currentUserSubject.next(session?.user ?? null);
@@ -36,7 +43,50 @@ export class AuthService {
                 this.currentRoleSubject.next('visitor');
                 this.stopRefreshTimer();
             }
+
+            // ✅ Une fois l'état d'auth chargé, arrêter le loading
+            if (event === 'SIGNED_IN' || event === 'SIGNED_OUT' || event === 'INITIAL_SESSION') {
+                this.loadingSubject.next(false);
+            }
         });
+    }
+
+    async createUser(options: {
+        email: string;
+        password: string;
+        fullName: string;
+        phone?: string;
+        role: 'editor' | 'admin';
+        requirePasswordChange?: boolean;
+    }): Promise<{ success: boolean; error?: any; message?: string }> {
+        try {
+            console.log('📝 Création utilisateur par admin:', options.email);
+
+            const { data, error } = await this.supabaseService.supabase.rpc('admin_create_user', {
+                user_email: options.email,
+                user_password: options.password,
+                user_full_name: options.fullName,
+                user_phone: options.phone || '',
+                user_role: options.role,
+                require_password_change: options.requirePasswordChange !== false
+            });
+
+            if (error) {
+                console.error('❌ Erreur RPC:', error);
+                return { success: false, error };
+            }
+
+            console.log('✅ Réponse:', data);
+
+            if (data && !data.success) {
+                return { success: false, error: { message: data.error } };
+            }
+
+            return { success: true, message: data?.message };
+        } catch (error) {
+            console.error('❌ Exception:', error);
+            return { success: false, error };
+        }
     }
 
     private async loadUser() {
@@ -70,7 +120,14 @@ export class AuthService {
             this.currentUserSubject.next(null);
             this.currentSessionSubject.next(null);
             this.currentRoleSubject.next('visitor');
+        } finally {
+            this.loadingSubject.next(false); // ✅ Fin chargement
         }
+    }
+
+    // ✅ Ajouter une méthode pour vérifier si le chargement est fini
+    isLoading(): boolean {
+        return this.loadingSubject.value;
     }
 
     private extractRoleFromJWT(token: string): void {
@@ -145,7 +202,6 @@ export class AuthService {
             }
 
             if (data.session) {
-                console.log('✅ Token rafraîchi avec succès');
                 return true;
             }
             return false;

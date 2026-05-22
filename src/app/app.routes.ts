@@ -10,6 +10,8 @@ import { UnauthorizedComponent } from './components/auth/unauthorized/unauthoriz
 import { AuthGuard } from './guards/auth.guard';
 import { RoleGuard } from './guards/role.guard';
 import { PublicGuard } from './guards/public.guard';
+import { ProfileComponent } from './components/profile/profile.component';
+import { CreateUserComponent } from './components/admin/create-user.component';
 
 export const routes: Routes = [
     { path: '', redirectTo: '/members', pathMatch: 'full' },
@@ -56,6 +58,17 @@ export const routes: Routes = [
     {
         path: 'admin/users',
         loadComponent: () => import('./components/admin/users-roles.component').then(m => m.UsersRolesComponent),
+        canActivate: [AuthGuard, RoleGuard],
+        data: { requiredRole: 'admin' }
+    },
+    {
+        path: 'profile',
+        component: ProfileComponent,
+        canActivate: [AuthGuard]
+    },
+    {
+        path: 'admin/users/create',
+        component: CreateUserComponent,
         canActivate: [AuthGuard, RoleGuard],
         data: { requiredRole: 'admin' }
     }

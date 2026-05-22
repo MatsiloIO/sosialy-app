@@ -2,13 +2,14 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { RouterLink } from '@angular/router';
 import { RoleService } from '../../services/role.service';
 import { AuthService } from '../../services/auth.service';
 
 @Component({
     selector: 'app-users-roles',
     standalone: true,
-    imports: [CommonModule, FormsModule],
+    imports: [CommonModule, FormsModule, RouterLink],
     template: `
         <div class="users-roles-container">
             <div class="d-flex justify-content-between align-items-center mb-4">
@@ -16,13 +17,18 @@ import { AuthService } from '../../services/auth.service';
                     <i class="fa-solid fa-users-gear me-2"></i>
                     Gestion des utilisateurs
                 </h2>
-                <button class="btn btn-outline-secondary btn-sm" (click)="loadUsers()" [disabled]="loading">
-                    <i class="fa-solid fa-rotate-right me-1"></i>
-                    Rafraîchir
-                </button>
+                <div class="d-flex gap-2">
+                    <a routerLink="/admin/users/create" class="btn btn-primary">
+                        <i class="fa-solid fa-user-plus me-1"></i>
+                        Nouvel utilisateur
+                    </a>
+                    <button class="btn btn-outline-secondary btn-sm" (click)="loadUsers()" [disabled]="loading">
+                        <i class="fa-solid fa-rotate-right me-1"></i>
+                        Rafraîchir
+                    </button>
+                </div>
             </div>
 
-            <!-- Loading state -->
             <div *ngIf="loading" class="card p-5 text-center">
                 <div class="spinner-border text-primary mb-3" role="status">
                     <span class="visually-hidden">Chargement...</span>
@@ -30,13 +36,11 @@ import { AuthService } from '../../services/auth.service';
                 <p class="text-muted mb-0">Chargement des utilisateurs...</p>
             </div>
 
-            <!-- Error state -->
             <div *ngIf="!loading && errorMessage" class="alert alert-warning">
                 <i class="fa-solid fa-triangle-exclamation me-2"></i>
                 {{ errorMessage }}
             </div>
 
-            <!-- Users table -->
             <div *ngIf="!loading && !errorMessage" class="card">
                 <div class="table-responsive">
                     <table class="table table-hover mb-0">
@@ -94,7 +98,6 @@ import { AuthService } from '../../services/auth.service';
                 </div>
             </div>
 
-            <!-- Info box -->
             <div class="card mt-4 bg-light border-0">
                 <div class="card-body">
                     <h6 class="card-title mb-3">
@@ -142,6 +145,7 @@ import { AuthService } from '../../services/auth.service';
         .users-roles-container {
             max-width: 1200px;
             margin: 0 auto;
+            padding: 20px;
         }
         .email-cell {
             font-family: monospace;
@@ -228,7 +232,6 @@ export class UsersRolesComponent implements OnInit {
 
         if (result.success) {
             user.role = user.selectedRole;
-            // Notification légère (peut être remplacée par un toast)
             const notification = document.createElement('div');
             notification.className = 'alert alert-success position-fixed bottom-0 end-0 m-3';
             notification.style.zIndex = '1050';
@@ -236,7 +239,6 @@ export class UsersRolesComponent implements OnInit {
             document.body.appendChild(notification);
             setTimeout(() => notification.remove(), 3000);
 
-            // Si c'est l'utilisateur courant, forcer la reconnexion
             const currentUser = this.authService.getCurrentUser();
             if (currentUser?.email === user.email) {
                 setTimeout(() => {

@@ -391,3 +391,45 @@ textarea:focus {
     background-color: #fb7185;
     color: #1a202c;
 }
+
+/* Écran de chargement */
+.app-loader {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--body-bg);
+    z-index: 9999;
+}
+
+.loader-container {
+    text-align: center;
+}
+
+.loader-container .spinner-border {
+    color: var(--primary);
+}
+
+/* Éviter le flash du contenu non stylisé */
+app-root {
+    display: block;
+    min-height: 100vh;
+}
+
+/* Transition douce pour l'apparition */
+.app-container {
+    animation: fadeIn 0.3s ease-in-out;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
+    }
+}

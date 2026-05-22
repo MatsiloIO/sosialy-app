@@ -1,3 +1,4 @@
+// src/app/components/members/members-list.component.ts
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
@@ -5,6 +6,7 @@ import { SupabaseService } from '../../services/supabase.service';
 import { SettingsService } from '../../services/settings.service';
 import { Member, MemberForm } from '../../models';
 import { LoadingIndicatorComponent } from '../shared/loading-indicator.component';
+import { AuthService } from '../../services/auth.service';
 
 @Component({
   selector: 'app-members-list',
@@ -26,12 +28,29 @@ export class MembersListComponent implements OnInit {
   editingMember: Member | null = null;
   isLoading: boolean = false;
 
-  constructor(private supabase: SupabaseService, private settingsService: SettingsService) {
+  // Rôle utilisateur
+  userRole: string = 'visitor';
+  canEdit = false;
+  isAdmin = false;
+
+  constructor(
+    private supabase: SupabaseService,
+    private settingsService: SettingsService,
+    private authService: AuthService
+  ) {
     this.pageSize = this.settingsService.getSavedPageSize('pagination.pageSize.members', 10);
   }
 
   async ngOnInit() {
+    await this.loadUserRole();
     await this.loadMembers();
+  }
+
+  async loadUserRole() {
+    this.userRole = this.authService.getCurrentRole();
+    this.canEdit = this.authService.canEdit();
+    this.isAdmin = this.authService.isAdmin();
+    console.log('👤 Rôle utilisateur dans membres:', this.userRole, 'canEdit:', this.canEdit);
   }
 
   async loadMembers() {
@@ -45,6 +64,12 @@ export class MembersListComponent implements OnInit {
   }
 
   async saveMember() {
+    // ✅ Vérification des droits
+    if (!this.canEdit) {
+      alert('Vous n\'avez pas les droits pour modifier les membres');
+      return;
+    }
+
     if (this.editingMember) {
       await this.supabase.updateMember(this.editingMember.id, this.formData);
     } else {
@@ -54,7 +79,12 @@ export class MembersListComponent implements OnInit {
     await this.loadMembers();
   }
 
-  editMember(member: any) {
+  editMember(member: Member) {
+    // ✅ Vérification des droits
+    if (!this.canEdit) {
+      alert('Vous n\'avez pas les droits pour modifier les membres');
+      return;
+    }
     this.editingMember = member;
     this.formData = { ...member };
   }
@@ -64,7 +94,13 @@ export class MembersListComponent implements OnInit {
   }
 
   async deleteMember(id: number) {
-    if (confirm('Supprimer ce membre ?')) {
+    // ✅ Vérification des droits (seul admin peut supprimer)
+    if (!this.isAdmin) {
+      alert('Seul un administrateur peut supprimer des membres');
+      return;
+    }
+
+    if (confirm('⚠️ Supprimer ce membre définitivement ? Cette action est irréversible.')) {
       await this.supabase.deleteMember(id);
       await this.loadMembers();
     }
@@ -122,5 +158,12 @@ export class MembersListComponent implements OnInit {
   resetForm() {
     this.formData = { nom: '', prenom: '', im: '', service: '', categorie: 'A' };
     this.editingMember = null;
+  }
+
+  getCategoryACount(): number {
+    if (!this.membersPage || !Array.isArray(this.membersPage)) {
+      return 0;
+    }
+    return this.membersPage.filter(m => m.categorie === 'A').length;
   }
 }
