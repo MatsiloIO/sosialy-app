@@ -22,7 +22,7 @@ export const routes: Routes = [
     // Routes publiques (accessibles aux visiteurs non authentifiés)
     {
         path: 'public/cotisations',
-        component: PublicContributionsComponent
+        component: PublicContributionsComponent,
     },
 
     // Routes protégées (authentification requise)
