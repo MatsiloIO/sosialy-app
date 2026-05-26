@@ -93,10 +93,10 @@
   <!-- Filtres -->
   <div class="row g-2 mb-3 align-items-end">
     <div class="col-md-4">
-      <label class="form-label small fw-bold text-muted">Rechercher</label>
+      <label class="form-label small fw-bold">Rechercher</label>
       <div class="input-group input-group-sm">
         <span class="input-group-text bg-white border-end-0">
-          <i class="fa-solid fa-magnifying-glass text-muted"></i>
+          <i class="fa-solid fa-magnifying-glass"></i>
         </span>
         <input
           class="form-control border-start-0 ps-0"
@@ -116,7 +116,7 @@
       </div>
     </div>
     <div class="col-md-3">
-      <label class="form-label small fw-bold text-muted">Catégorie</label>
+      <label class="form-label small fw-bold">Catégorie</label>
       <select
         class="form-select form-select-sm"
         [(ngModel)]="filterCategory"
@@ -128,7 +128,7 @@
       </select>
     </div>
     <div class="col-md-3">
-      <label class="form-label small fw-bold text-muted">Lignes par page</label>
+      <label class="form-label small fw-bold">Lignes par page</label>
       <select
         class="form-select form-select-sm"
         [(ngModel)]="pageSize"
@@ -141,8 +141,8 @@
       </select>
     </div>
     <div class="col-md-2">
-      <label class="form-label small fw-bold text-muted">&nbsp;</label>
-      <div class="text-muted small pt-1">
+      <label class="form-label small fw-bold">&nbsp;</label>
+      <div class="small pt-1">
         <i class="fa-regular fa-user"></i>
         {{ filteredMembers.length }} membre(s)
       </div>
@@ -198,13 +198,13 @@
               >
                 <i class="fa-solid fa-trash"></i>
               </button>
-              <span *ngIf="!isAdmin && canEdit" class="text-muted small">
+              <span *ngIf="!isAdmin && canEdit" class="small">
                 <i class="fa-solid fa-lock"></i>Suppression admin
               </span>
             </td>
           </tr>
           <tr *ngIf="membersPage.length === 0">
-            <td colspan="6" class="text-center text-muted py-4">
+            <td colspan="6" class="text-center py-4">
               <i class="fa-solid fa-users-slash fa-2x mb-2 d-block"></i>
               Aucun membre trouvé
             </td>
@@ -212,7 +212,7 @@
         </tbody>
         <tfoot *ngIf="membersPage && membersPage.length > 0" class="table-light">
           <tr>
-            <td colspan="5" class="small text-muted">
+            <td colspan="5" class="small">
               <i class="fa-regular fa-user me-1"></i>
               Affichage de {{ membersPage.length }} membre(s) sur {{ filteredMembers.length }} total
             </td>
@@ -230,7 +230,7 @@
 
   <!-- Pagination -->
   <div class="d-flex justify-content-between align-items-center mt-3" *ngIf="totalPages > 1">
-    <div class="text-muted small">Page {{ currentPage }} / {{ totalPages }}</div>
+    <div class="small">Page {{ currentPage }} / {{ totalPages }}</div>
     <nav>
       <ul class="pagination pagination-sm mb-0">
         <li class="page-item" [class.disabled]="currentPage === 1">
