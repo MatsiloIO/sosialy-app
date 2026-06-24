@@ -4,6 +4,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { SupabaseService } from '../../services/supabase.service';
 import { SettingsService } from '../../services/settings.service';
+import { TokenService } from '../../services/token.service';
 import { SpaceNumberPipe } from '../../pipes/space-number.pipe';
 import { LoadingIndicatorComponent } from '../shared/loading-indicator.component';
 import { AuthService } from '../../services/auth.service';
@@ -23,6 +24,8 @@ interface MemberContributionStatus {
   moisPayes: number;
   tauxPaiement: number;
   dernierPaiement?: string;
+  totalTokens?: number;
+  tokensPayes?: number;
 }
 
 @Component({
@@ -48,6 +51,8 @@ export class PublicContributionsComponent implements OnInit {
   tauxGlobal: number = 0;
   totalCollecte: number = 0;
   totalMoisPayes: number = 0;
+  totalTokensAll: number = 0;
+  totalTokensPayesAll: number = 0;
   isLoading: boolean = false;
 
   userRole: string = 'visitor';
@@ -56,6 +61,7 @@ export class PublicContributionsComponent implements OnInit {
   constructor(
     private supabase: SupabaseService,
     private settingsService: SettingsService,
+    private tokenService: TokenService,
     private authService: AuthService
   ) {
     const startYear = 2026;
@@ -81,6 +87,7 @@ export class PublicContributionsComponent implements OnInit {
     try {
       const membres = await this.supabase.getMembers();
       const contributions = await this.supabase.getContributionsByYear(this.anneeSelectionnee);
+      const tokenSummaries = await this.tokenService.getMemberTokenSummary();
 
       this.membres = membres.map((member: any) => {
         const cotisationsMembre = contributions.filter((c: any) => c.member_id === member.id);
@@ -97,6 +104,8 @@ export class PublicContributionsComponent implements OnInit {
           dernierPaiement = dernier.date;
         }
 
+        const tokenSummary = tokenSummaries.find((s: any) => s.member_id === member.id);
+
         return {
           memberId: member.id,
           nom: member.nom,
@@ -108,7 +117,9 @@ export class PublicContributionsComponent implements OnInit {
           totalAnnuel: totalAnnuel,
           moisPayes: moisPayes,
           tauxPaiement: tauxPaiement,
-          dernierPaiement: dernierPaiement
+          dernierPaiement: dernierPaiement,
+          totalTokens: tokenSummary ? tokenSummary.total_tokens : 0,
+          tokensPayes: tokenSummary ? tokenSummary.tokens_payes : 0
         };
       });
 
@@ -116,6 +127,9 @@ export class PublicContributionsComponent implements OnInit {
       this.membresAJour = this.membres.filter(m => m.tauxPaiement === 100).length;
       this.totalCollecte = this.membres.reduce((sum, m) => sum + m.totalAnnuel, 0);
       this.totalMoisPayes = this.membres.reduce((sum, m) => sum + m.moisPayes, 0);
+      // tokens totals
+      this.totalTokensAll = this.membres.reduce((sum, m) => sum + (m.totalTokens || 0), 0);
+      this.totalTokensPayesAll = this.membres.reduce((sum, m) => sum + (m.tokensPayes || 0), 0);
       this.tauxGlobal = this.totalMembres > 0
         ? Math.round((this.totalMoisPayes / (this.totalMembres * 12)) * 100)
         : 0;
@@ -171,16 +185,19 @@ export class PublicContributionsComponent implements OnInit {
       return;
     }
 
-    const headers = ['IM', 'Nom', 'Prénom', 'Service', 'Catégorie', 'Mois payés', 'Taux (%)', 'Total Annuel (Ar)'];
+    const headers = ['IM', 'Nom', 'Prénom', 'Service', 'Catégorie', 'Montant/mois', 'Mois payés', 'Tokens payés', 'Taux (%)', 'Total Annuel (Ar)', 'Statut'];
     const rows = this.membresFiltres.map(m => [
       m.im,
       m.nom,
       m.prenom,
       m.service || '',
       m.categorie,
+      (m.montantMensuel || 0).toString(),
       `${m.moisPayes}/12`,
+      `${m.tokensPayes || 0}/${m.totalTokens || 0}`,
       m.tauxPaiement.toString(),
-      m.totalAnnuel.toString()
+      m.totalAnnuel.toString(),
+      (m.tauxPaiement === 100 ? 'À jour' : (m.tauxPaiement > 0 ? 'Partiel' : 'Aucune'))
     ]);
 
     const csvContent = [headers, ...rows].map(row => row.join(',')).join('\n');
@@ -211,6 +228,7 @@ export class PublicContributionsComponent implements OnInit {
       'Mois payés': `${m.moisPayes}/12`,
       'Taux (%)': m.tauxPaiement,
       'Total annuel (Ar)': m.totalAnnuel,
+      'Tokens payés': `${m.tokensPayes || 0}/${m.totalTokens || 0}`,
       'Dernier paiement': m.dernierPaiement ? new Date(m.dernierPaiement).toLocaleDateString('fr-FR') : '-',
       'Statut': m.tauxPaiement === 100 ? 'À jour' : (m.tauxPaiement > 0 ? 'Partiel' : 'Aucune')
     }));
@@ -225,6 +243,7 @@ export class PublicContributionsComponent implements OnInit {
       'Mois payés': `${this.totalMoisPayes}/${this.totalMembres * 12}`,
       'Taux (%)': this.tauxGlobal,
       'Total annuel (Ar)': this.totalCollecte,
+      'Tokens payés': `${this.membres.reduce((s, m) => s + (m.tokensPayes || 0), 0)}/${this.membres.reduce((s, m) => s + (m.totalTokens || 0), 0)}`,
       'Dernier paiement': '',
       'Statut': `${this.membresAJour}/${this.totalMembres} membres à jour`
     });
@@ -235,7 +254,7 @@ export class PublicContributionsComponent implements OnInit {
     ws['!cols'] = [
       { wch: 12 }, { wch: 20 }, { wch: 20 }, { wch: 20 },
       { wch: 10 }, { wch: 18 }, { wch: 12 }, { wch: 10 },
-      { wch: 18 }, { wch: 15 }, { wch: 15 }
+      { wch: 14 }, { wch: 18 }, { wch: 15 }, { wch: 15 }
     ];
 
     XLSX.utils.book_append_sheet(wb, ws, `Cotisations_${this.anneeSelectionnee}`);
@@ -270,31 +289,75 @@ export class PublicContributionsComponent implements OnInit {
     if (!this.exportPage) return;
 
     try {
-      const element = this.exportPage.nativeElement;
+      const element = this.exportPage.nativeElement as HTMLElement;
+
+      // Preserve original styles to restore later
+      const originalWidth = element.style.width || '';
+      const originalHeight = element.style.height || '';
+      const originalOverflow = element.style.overflow || '';
+
+      // Expand element to its full scroll size so html2canvas captures all content
+      element.style.width = element.scrollWidth + 'px';
+      element.style.height = element.scrollHeight + 'px';
+      element.style.overflow = 'visible';
+
       const canvas = await html2canvas(element, {
         scale: 2,
         useCORS: true,
-        backgroundColor: '#ffffff'
+        backgroundColor: '#ffffff',
+        width: element.scrollWidth,
+        height: element.scrollHeight,
+        windowWidth: element.scrollWidth,
+        windowHeight: element.scrollHeight
       });
 
-      const imgData = canvas.toDataURL('image/png');
-      const pdf = new jsPDF({
-        orientation: 'landscape',
-        unit: 'mm',
-        format: 'a4'
-      });
+      // restore styles
+      element.style.width = originalWidth;
+      element.style.height = originalHeight;
+      element.style.overflow = originalOverflow;
 
-      const imgWidth = pdf.internal.pageSize.getWidth() - 20;
-      const imgHeight = (canvas.height * imgWidth) / canvas.width;
-      let yPosition = 15;
+      const pdf = new jsPDF({ orientation: 'landscape', unit: 'mm', format: 'a4' });
+      const pageWidth = pdf.internal.pageSize.getWidth();
+      const pageHeight = pdf.internal.pageSize.getHeight();
+      const margin = 10; // mm
 
-      pdf.setFontSize(14);
-      pdf.text(`État des cotisations - Année ${this.anneeSelectionnee}`, 10, yPosition);
-      yPosition += 8;
-      pdf.setFontSize(10);
-      pdf.text(`Généré le: ${new Date().toLocaleDateString('fr-FR')}`, 10, yPosition);
-      yPosition += 10;
-      pdf.addImage(imgData, 'PNG', 10, yPosition, imgWidth, imgHeight);
+      // Calculate image widths/heights and how many px correspond to one PDF page height
+      const imgWidthMM = pageWidth - margin * 2;
+      const pxPerMm = canvas.width / imgWidthMM;
+      const sliceHeightPx = Math.floor(pageHeight * pxPerMm);
+
+      let yPx = 0;
+      let pageIndex = 0;
+
+      while (yPx < canvas.height) {
+        const canvasSlice = document.createElement('canvas');
+        canvasSlice.width = canvas.width;
+        const remaining = canvas.height - yPx;
+        canvasSlice.height = remaining > sliceHeightPx ? sliceHeightPx : remaining;
+        const ctx = canvasSlice.getContext('2d');
+        if (!ctx) throw new Error('Impossible d\'obtenir le contexte canvas');
+        ctx.drawImage(canvas, 0, yPx, canvas.width, canvasSlice.height, 0, 0, canvasSlice.width, canvasSlice.height);
+
+        const imgData = canvasSlice.toDataURL('image/png');
+        const imgHeightMM = canvasSlice.height / pxPerMm;
+
+        if (pageIndex > 0) pdf.addPage();
+        // Add header on first page
+        if (pageIndex === 0) {
+          let yPos = margin - 2;
+          pdf.setFontSize(14);
+          pdf.text(`État des cotisations - Année ${this.anneeSelectionnee}`, margin, yPos + 6);
+          pdf.setFontSize(10);
+          pdf.text(`Généré le: ${new Date().toLocaleDateString('fr-FR')}`, margin, yPos + 12);
+          // place image below header
+          pdf.addImage(imgData, 'PNG', margin, margin + 12, imgWidthMM, imgHeightMM);
+        } else {
+          pdf.addImage(imgData, 'PNG', margin, margin, imgWidthMM, imgHeightMM);
+        }
+
+        yPx += canvasSlice.height;
+        pageIndex++;
+      }
 
       const timestamp = new Date().toISOString().split('T')[0];
       pdf.save(`cotisations_${this.anneeSelectionnee}_${timestamp}.pdf`);

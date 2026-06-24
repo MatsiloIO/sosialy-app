@@ -38,12 +38,14 @@ export const routes: Routes = [
     {
         path: 'tokens',
         component: TokenDashboardComponent,
-        canActivate: [AuthGuard]
+        canActivate: [AuthGuard, RoleGuard],
+        data: { requiredRole: 'editor' }
     },
     {
         path: 'tokens/member/:id',
         component: MemberTokensComponent,
-        canActivate: [AuthGuard]
+        canActivate: [AuthGuard, RoleGuard],
+        data: { requiredRole: 'editor' }
     },
     {
         path: 'tokens/assign',

@@ -183,7 +183,7 @@ export class MemberTokensComponent implements OnInit {
 
     const total = this.getSelectedTotal();
     const confirmation = confirm(
-      `Paiement de ${this.selectedTokenIds.length} jeton(s)\n` +
+      `Paiement de ${this.selectedTokenIds.length} \n` +
       `Montant total: ${total.toLocaleString()} Ar\n` +
       `Confirmer le paiement ?`
     );

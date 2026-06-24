@@ -151,6 +151,7 @@
               <th>Cat.</th>
               <th>Montant/mois</th>
               <th>Mois payés</th>
+              <th>OM payés</th>
               <th>Taux</th>
               <th>Total annuel</th>
               <th>Statut</th>
@@ -190,6 +191,11 @@
                 </div>
               </td>
               <td>
+                <span class="fw-bold"
+                  >{{ member.tokensPayes || 0 }}/{{ member.totalTokens || 0 }}</span
+                >
+              </td>
+              <td>
                 <span
                   class="badge fs-6 px-3 py-2"
                   [class.bg-success]="member.tauxPaiement === 100"
@@ -225,7 +231,7 @@
               </td>
             </tr>
             <tr *ngIf="membresFiltres.length === 0">
-              <td colspan="9" class="text-center py-5">
+              <td colspan="10" class="text-center py-5">
                 <i class="fa-solid fa-users-slash fa-2x mb-2 d-block"></i>Aucun membre trouvé
               </td>
             </tr>
@@ -234,8 +240,10 @@
             <tr>
               <td colspan="5" class="text-end">Totaux :</td>
               <td>{{ totalMoisPayes }}/{{ totalMembres * 12 }}</td>
+              <td>{{ totalTokensPayesAll }}/{{ totalTokensAll }}</td>
               <td>{{ tauxGlobal }}%</td>
-              <td colspan="2">{{ totalCollecte | spaceNumber }} Ar</td>
+              <td>{{ totalCollecte | spaceNumber }} Ar</td>
+              <td>{{ membresAJour }}/{{ totalMembres }} membres à jour</td>
             </tr>
           </tfoot>
         </table>
@@ -304,6 +312,10 @@
                 ></div>
               </div>
             </div>
+          </div>
+          <div class="col-6">
+            <small class="d-block">OM payés</small>
+            <strong>{{ member.tokensPayes || 0 }}/{{ member.totalTokens || 0 }}</strong>
           </div>
           <div class="col-6">
             <small class="d-block">Montant/mois</small>

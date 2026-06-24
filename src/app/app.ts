@@ -19,6 +19,7 @@ export class App implements OnInit {
   isAuthenticated = false;
   userName = '';
   userRole: string = 'visitor';
+  canEdit: boolean = false;
   private authSubscription: Subscription | null = null;
   isLoading = true
   constructor(private authService: AuthService, private router: Router) {
@@ -68,6 +69,7 @@ export class App implements OnInit {
     // Abonnement au rôle
     this.authService.currentRole$.subscribe(role => {
       this.userRole = role;
+      this.canEdit = this.authService.canEdit();
     });
   }
   private handleRedirectAfterLoad() {

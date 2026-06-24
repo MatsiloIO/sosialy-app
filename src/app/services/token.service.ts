@@ -154,7 +154,7 @@ export class TokenService {
             for (const token of tokens) {
                 const revenueData = {
                     date: payment.date_paiement,
-                    libelle: `Paiement jeton - ${token.token_type?.name || 'Jeton'} - ${token.member?.prenom || ''} ${token.member?.nom || ''}`,
+                    libelle: `Paiement ${token.token_type?.name || 'Jeton'} - ${token.member?.prenom || ''}`,
                     montant: token.montant,
                     category_id: 1
                 };

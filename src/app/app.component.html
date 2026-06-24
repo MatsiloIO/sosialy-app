@@ -56,7 +56,7 @@
             <i class="fa-solid fa-users me-2"></i> Membres
           </a>
         </li>
-        <li class="nav-item" *ngIf="userRole === 'editor' || userRole === 'admin'">
+        <li class="nav-item" *ngIf="canEdit">
           <a class="nav-link" routerLink="/tokens">
             <i class="fa-solid fa-ticket me-2"></i> Ordre de Mission
           </a>
@@ -165,7 +165,7 @@
             <i class="fa-solid fa-users me-2"></i> Membres
           </a>
         </li>
-        <li class="nav-item" *ngIf="isAuthenticated">
+        <li class="nav-item" *ngIf="canEdit">
           <a class="nav-link" routerLink="/tokens" (click)="closeMobileSidebar()">
             <i class="fa-solid fa-ticket me-2"></i> Ordre de mission
           </a>
