@@ -57,7 +57,9 @@ export class SupabaseService {
             .from('members')
             .insert([member])
             .select();
-        return this.handleArray(data, error);
+        const rows = this.handleArray(data, error);
+        try { this.recordAudit('add_member', { member: member, resultCount: rows.length }).catch(() => { }); } catch (e) { }
+        return rows;
     }
 
     async updateMember(id: number, member: MemberForm): Promise<Member[]> {
@@ -66,7 +68,9 @@ export class SupabaseService {
             .update(member)
             .eq('id', id)
             .select();
-        return this.handleArray(data, error);
+        const rows = this.handleArray(data, error);
+        try { this.recordAudit('update_member', { id, member }).catch(() => { }); } catch (e) { }
+        return rows;
     }
 
     async deleteMember(id: number): Promise<boolean> {
@@ -75,10 +79,45 @@ export class SupabaseService {
             .delete()
             .eq('id', id);
         if (error) throw error;
+        try { this.recordAudit('delete_member', { id }).catch(() => { }); } catch (e) { }
         return true;
     }
 
     // ========== COTISATIONS ==========
+
+    // ========== AUDIT ==========
+    async recordAudit(action: string, details?: any): Promise<void> {
+        try {
+            // try to get current user from session
+            let userId: string | null = null;
+            let userEmail: string | null = null;
+            try {
+                const { data } = await this.supabase.auth.getSession();
+                const session = (data as any)?.session;
+                const user = session?.user;
+                if (user) {
+                    userId = user.id;
+                    userEmail = user.email || null;
+                }
+            } catch (e) {
+                // ignore
+            }
+
+            const payload: any = {
+                action,
+                details: details ? (typeof details === 'string' ? details : JSON.stringify(details)) : null,
+                user_id: userId,
+                user_email: userEmail,
+                created_at: new Date().toISOString()
+            };
+
+            const { error } = await this.supabase.from('audit_logs').insert([payload]);
+            if (error) console.error('Erreur enregistrement audit:', error);
+        } catch (e) {
+            console.error('Exception recordAudit:', e);
+        }
+    }
+
     async getContributions(): Promise<Contribution[]> {
         const { data, error } = await this.supabase
             .from('contributions')
@@ -101,7 +140,9 @@ export class SupabaseService {
             .from('contributions')
             .insert([contribution])
             .select();
-        return this.handleArray(data, error);
+        const rows = this.handleArray(data, error);
+        try { this.recordAudit('add_contribution', { contribution }).catch(() => { }); } catch (e) { }
+        return rows;
     }
 
     // ========== AUTRES RECETTES ==========
@@ -118,7 +159,9 @@ export class SupabaseService {
             .from('other_revenues')
             .insert([revenue])
             .select();
-        return this.handleArray(data, error);
+        const rows = this.handleArray(data, error);
+        try { this.recordAudit('add_other_revenue', { revenue }).catch(() => { }); } catch (e) { }
+        return rows;
     }
 
     async deleteOtherRevenue(id: number): Promise<boolean> {
@@ -127,6 +170,7 @@ export class SupabaseService {
             .delete()
             .eq('id', id);
         if (error) throw error;
+        try { this.recordAudit('delete_other_revenue', { id }).catch(() => { }); } catch (e) { }
         return true;
     }
 
@@ -144,7 +188,9 @@ export class SupabaseService {
             .from('expenses')
             .insert([expense])
             .select();
-        return this.handleArray(data, error);
+        const rows = this.handleArray(data, error);
+        try { this.recordAudit('add_expense', { expense }).catch(() => { }); } catch (e) { }
+        return rows;
     }
 
     async updateExpense(id: number, expense: ExpenseForm): Promise<Expense[]> {
@@ -153,7 +199,9 @@ export class SupabaseService {
             .update(expense)
             .eq('id', id)
             .select();
-        return this.handleArray(data, error);
+        const rows = this.handleArray(data, error);
+        try { this.recordAudit('update_expense', { id, expense }).catch(() => { }); } catch (e) { }
+        return rows;
     }
 
     async deleteExpense(id: number): Promise<boolean> {
@@ -162,6 +210,7 @@ export class SupabaseService {
             .delete()
             .eq('id', id);
         if (error) throw error;
+        try { this.recordAudit('delete_expense', { id }).catch(() => { }); } catch (e) { }
         return true;
     }
 
@@ -227,6 +276,8 @@ export class SupabaseService {
         };
         await this.addOtherRevenue(revenue);
 
+        try { this.recordAudit('add_contribution_with_date', { contribution }).catch(() => { }); } catch (e) { }
+
         return newContribution;
     }
 
@@ -236,6 +287,7 @@ export class SupabaseService {
             .delete()
             .eq('id', id);
         if (error) throw error;
+        try { this.recordAudit('delete_contribution', { id }).catch(() => { }); } catch (e) { }
         return true;
     }
 
@@ -286,6 +338,7 @@ export class SupabaseService {
             console.error('Erreur upsertAppSettings:', error);
             throw error;
         }
+        try { this.recordAudit('upsert_app_settings', { settings }).catch(() => { }); } catch (e) { }
     }
 
     // NOTE: use SettingsService.getMontantCotisation for dynamic values

@@ -5,6 +5,7 @@ import { FormsModule } from '@angular/forms';
 import { SupabaseService } from '../../services/supabase.service';
 import { SettingsService } from '../../services/settings.service';
 import { TokenService } from '../../services/token.service';
+import { AuditService } from '../../services/audit.service';
 import { SpaceNumberPipe } from '../../pipes/space-number.pipe';
 import { LoadingIndicatorComponent } from '../shared/loading-indicator.component';
 import { AuthService } from '../../services/auth.service';
@@ -62,6 +63,7 @@ export class PublicContributionsComponent implements OnInit {
     private supabase: SupabaseService,
     private settingsService: SettingsService,
     private tokenService: TokenService,
+    private auditService: AuditService,
     private authService: AuthService
   ) {
     const startYear = 2026;
@@ -210,6 +212,8 @@ export class PublicContributionsComponent implements OnInit {
     link.click();
     document.body.removeChild(link);
     URL.revokeObjectURL(url);
+    // log action
+    this.auditService.log('export_csv', { year: this.anneeSelectionnee, rows: rows.length });
   }
 
   exportToExcel() {
@@ -259,6 +263,7 @@ export class PublicContributionsComponent implements OnInit {
 
     XLSX.utils.book_append_sheet(wb, ws, `Cotisations_${this.anneeSelectionnee}`);
     XLSX.writeFile(wb, `cotisations_${this.anneeSelectionnee}_${new Date().toISOString().split('T')[0]}.xlsx`);
+    this.auditService.log('export_excel', { year: this.anneeSelectionnee, rows: this.membresFiltres.length });
   }
 
   async exportAsImage() {
@@ -361,6 +366,7 @@ export class PublicContributionsComponent implements OnInit {
 
       const timestamp = new Date().toISOString().split('T')[0];
       pdf.save(`cotisations_${this.anneeSelectionnee}_${timestamp}.pdf`);
+      this.auditService.log('export_pdf', { year: this.anneeSelectionnee, pages: pageIndex });
     } catch (error) {
       console.error('Erreur export PDF:', error);
       alert('Erreur lors de l\'export en PDF');

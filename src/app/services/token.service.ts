@@ -1,6 +1,7 @@
 // src/app/services/token.service.ts
 import { Injectable } from '@angular/core';
 import { SupabaseService } from './supabase.service';
+import { AuditService } from './audit.service';
 import {
     MemberToken,
     MemberTokenForm,
@@ -14,7 +15,7 @@ import {
     providedIn: 'root'
 })
 export class TokenService {
-    constructor(private supabase: SupabaseService) { }
+    constructor(private supabase: SupabaseService, private audit: AuditService) { }
 
     // ========== TYPES DE JETONS ==========
     async getTokenTypes(): Promise<TokenType[]> {
@@ -34,6 +35,7 @@ export class TokenService {
             .insert([{ name, montant, is_active: true }]);
 
         if (error) throw error;
+        try { await this.audit.log('create_token_type', { name, montant }).catch(() => { }); } catch (e) { }
     }
 
     async updateTokenType(id: number, name: string, montant: number): Promise<void> {
@@ -43,6 +45,7 @@ export class TokenService {
             .eq('id', id);
 
         if (error) throw error;
+        try { await this.audit.log('update_token_type', { id, name, montant }).catch(() => { }); } catch (e) { }
     }
 
     async deleteTokenType(id: number): Promise<void> {
@@ -52,6 +55,7 @@ export class TokenService {
             .eq('id', id);
 
         if (error) throw error;
+        try { await this.audit.log('delete_token_type', { id }).catch(() => { }); } catch (e) { }
     }
 
     // ========== JETONS PAR MEMBRE ==========
@@ -112,6 +116,7 @@ export class TokenService {
             .single();
 
         if (error) throw error;
+        try { await this.audit.log('assign_token', { token: data }).catch(() => { }); } catch (e) { }
         return data;
     }
 
@@ -135,6 +140,7 @@ export class TokenService {
             .insert(tokens);
 
         if (error) throw error;
+        try { await this.audit.log('assign_multiple_tokens', { memberId, tokenTypeId, quantity }).catch(() => { }); } catch (e) { }
     }
 
     async payTokens(payment: TokenPaymentForm): Promise<void> {
@@ -179,6 +185,14 @@ export class TokenService {
 
                 if (updateError) throw updateError;
             }
+            // log token payment (if audit service available)
+            try {
+                if (this.audit) {
+                    await this.audit.log('pay_tokens', { token_ids: payment.token_ids, date: payment.date_paiement, count: tokens.length });
+                }
+            } catch (e) {
+                console.warn('Audit logging failed for token payment', e);
+            }
         } catch (error) {
             console.error('Erreur lors du paiement:', error);
             throw error;
@@ -214,6 +228,7 @@ export class TokenService {
 
             if (deleteError) throw deleteError;
 
+            try { await this.audit.log('cancel_token', { tokenId }).catch(() => { }); } catch (e) { }
             console.log(`✅ Jeton ${tokenId} supprimé définitivement`);
 
         } catch (error) {

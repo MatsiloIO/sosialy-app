@@ -77,6 +77,7 @@ export class AuthService {
                     // RPC handled but returned failure
                     console.warn('RPC returned failure:', data.error);
                 } else {
+                    try { await this.supabaseService.recordAudit('create_user_rpc', { email: options.email, role: options.role, response: data }).catch(() => { }); } catch (e) { }
                     return { success: true, message: data?.message };
                 }
             } else if (error) {
@@ -120,12 +121,16 @@ export class AuthService {
                 if (insertError) {
                     console.error('❌ Erreur insertion table users:', insertError);
                     // Don't fail hard: return success for auth creation but warn
+                    try { await this.supabaseService.recordAudit('create_user_fallback_insert_failed', { email: options.email, role: options.role, error: insertError }).catch(() => { }); } catch (e) { }
                     return { success: true, message: 'Utilisateur créé mais insertion users a échoué', error: insertError };
                 }
             } catch (e) {
                 console.error('❌ Exception insertion users:', e);
+                try { await this.supabaseService.recordAudit('create_user_fallback_insert_exception', { email: options.email, role: options.role, error: e }).catch(() => { }); } catch (err) { }
                 return { success: true, message: 'Utilisateur créé mais insertion users a échoué', error: e };
             }
+
+            try { await this.supabaseService.recordAudit('create_user_fallback', { email: options.email, role: options.role, created_user_id: createdUser.id }).catch(() => { }); } catch (e) { }
 
             return { success: true, message: 'Utilisateur créé avec succès (fallback)' };
         } catch (error) {

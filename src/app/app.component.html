@@ -86,6 +86,11 @@
             <i class="fa-solid fa-users me-2"></i> Gestion des utilisateurs
           </a>
         </li>
+        <li class="nav-item" *ngIf="userRole === 'admin'">
+          <a class="nav-link" routerLink="/admin/logs">
+            <i class="fa-solid fa-file-lines me-2"></i> Journal d'activité
+          </a>
+        </li>
       </ul>
 
       <!-- Footer Sidebar (User info + Actions) -->
