@@ -28,42 +28,69 @@
         ></i>
         {{ editingMember ? 'Modifier le membre' : 'Ajouter un membre' }}
       </h5>
-      <!-- Champs du formulaire sur une seule ligne -->
-      <div class="row g-2">
-        <div class="col-md-4">
-          <input
-            [(ngModel)]="formData.nom"
-            placeholder="Nom"
-            class="form-control form-control-sm"
-          />
+      <form #memberForm="ngForm" novalidate>
+        <!-- Champs du formulaire sur une seule ligne -->
+        <div class="row g-2">
+          <div class="col-md-4">
+            <input
+              [(ngModel)]="formData.nom"
+              name="nom"
+              required
+              placeholder="Nom"
+              class="form-control form-control-sm"
+            />
+          </div>
+          <div class="col-md-4">
+            <input
+              [(ngModel)]="formData.prenom"
+              name="prenom"
+              required
+              placeholder="Prénom"
+              class="form-control form-control-sm"
+            />
+          </div>
+          <div class="col-md-1">
+            <input
+              [(ngModel)]="formData.im"
+              name="im"
+              required
+              placeholder="IM"
+              class="form-control form-control-sm"
+            />
+          </div>
+          <div class="col-md-1">
+            <input
+              [(ngModel)]="formData.service"
+              name="service"
+              required
+              placeholder="Service"
+              class="form-control form-control-sm"
+            />
+          </div>
+          <div class="col-md-2">
+            <select
+              [(ngModel)]="formData.categorie"
+              name="categorie"
+              class="form-select form-select-sm"
+            >
+              <option value="A">Catégorie A</option>
+              <option value="B">Catégorie B</option>
+            </select>
+          </div>
         </div>
-        <div class="col-md-4">
-          <input
-            [(ngModel)]="formData.prenom"
-            placeholder="Prénom"
-            class="form-control form-control-sm"
-          />
-        </div>
-        <div class="col-md-1">
-          <input [(ngModel)]="formData.im" placeholder="IM" class="form-control form-control-sm" />
-        </div>
-        <div class="col-md-1">
-          <input
-            [(ngModel)]="formData.service"
-            placeholder="Service"
-            class="form-control form-control-sm"
-          />
-        </div>
-        <div class="col-md-2">
-          <select [(ngModel)]="formData.categorie" class="form-select form-select-sm">
-            <option value="A">Catégorie A</option>
-            <option value="B">Catégorie B</option>
-          </select>
-        </div>
+      </form>
+      <div class="mt-2">
+        <small class="text-danger" *ngIf="!isMemberFormValid()">
+          Nom, prénom, IM et service sont obligatoires.
+        </small>
       </div>
       <!-- ✅ Boutons en bas -->
       <div class="mt-3">
-        <button (click)="saveMember()" class="btn btn-primary btn-sm" [disabled]="isLoading">
+        <button
+          (click)="saveMember()"
+          class="btn btn-primary btn-sm"
+          [disabled]="isLoading || !isMemberFormValid()"
+        >
           <i class="fa-solid" [class.fa-plus]="!editingMember" [class.fa-save]="editingMember"></i>
           {{ editingMember ? 'Modifier' : 'Ajouter' }}
         </button>
@@ -154,12 +181,52 @@
     <div class="table-responsive">
       <table class="table table-hover mb-0 align-middle">
         <thead class="table-light">
-          <tr>
-            <th>IM</th>
-            <th>Nom</th>
-            <th>Prénom</th>
-            <th>Service</th>
-            <th>Catégorie</th>
+          <tr class="sortable-header-row">
+            <th (click)="toggleSort('im')" class="sortable-header">
+              IM
+              <i
+                class="fa-solid ms-1"
+                [class.fa-sort-up]="sortColumn === 'im' && sortDirection === 'asc'"
+                [class.fa-sort-down]="sortColumn === 'im' && sortDirection === 'desc'"
+                [class.fa-sort]="sortColumn !== 'im'"
+              ></i>
+            </th>
+            <th (click)="toggleSort('nom')" class="sortable-header">
+              Nom
+              <i
+                class="fa-solid ms-1"
+                [class.fa-sort-up]="sortColumn === 'nom' && sortDirection === 'asc'"
+                [class.fa-sort-down]="sortColumn === 'nom' && sortDirection === 'desc'"
+                [class.fa-sort]="sortColumn !== 'nom'"
+              ></i>
+            </th>
+            <th (click)="toggleSort('prenom')" class="sortable-header">
+              Prénom
+              <i
+                class="fa-solid ms-1"
+                [class.fa-sort-up]="sortColumn === 'prenom' && sortDirection === 'asc'"
+                [class.fa-sort-down]="sortColumn === 'prenom' && sortDirection === 'desc'"
+                [class.fa-sort]="sortColumn !== 'prenom'"
+              ></i>
+            </th>
+            <th (click)="toggleSort('service')" class="sortable-header">
+              Service
+              <i
+                class="fa-solid ms-1"
+                [class.fa-sort-up]="sortColumn === 'service' && sortDirection === 'asc'"
+                [class.fa-sort-down]="sortColumn === 'service' && sortDirection === 'desc'"
+                [class.fa-sort]="sortColumn !== 'service'"
+              ></i>
+            </th>
+            <th (click)="toggleSort('categorie')" class="sortable-header">
+              Catégorie
+              <i
+                class="fa-solid ms-1"
+                [class.fa-sort-up]="sortColumn === 'categorie' && sortDirection === 'asc'"
+                [class.fa-sort-down]="sortColumn === 'categorie' && sortDirection === 'desc'"
+                [class.fa-sort]="sortColumn !== 'categorie'"
+              ></i>
+            </th>
             <th *ngIf="canEdit" class="text-center">Actions</th>
           </tr>
         </thead>

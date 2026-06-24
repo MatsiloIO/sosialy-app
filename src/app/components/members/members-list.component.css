@@ -65,6 +65,28 @@
   background-color: var(--surface-alt);
 }
 
+/* Sorting headers */
+.sortable-header {
+  cursor: pointer;
+  user-select: none;
+  transition: background-color 0.2s ease;
+  position: relative;
+}
+
+.sortable-header:hover {
+  background-color: rgba(0, 0, 0, 0.05);
+}
+
+.sortable-header i {
+  font-size: 0.8rem;
+  color: #adb5bd;
+}
+
+.sortable-header i.fa-sort-up,
+.sortable-header i.fa-sort-down {
+  color: var(--primary);
+}
+
 /* Responsive */
 @media (max-width: 767.98px) {
   .row.gy-2 .col-md-3,

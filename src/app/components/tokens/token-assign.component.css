@@ -1,0 +1,63 @@
+/* src/app/components/tokens/token-assign.component.css */
+.sticky-top {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+
+.table tbody tr {
+  transition: background-color 0.2s ease;
+}
+
+.table tbody tr:hover {
+  background-color: rgba(13, 110, 253, 0.08);
+  cursor: pointer;
+}
+
+.table tbody tr.table-primary {
+  background-color: rgba(13, 110, 253, 0.15) !important;
+}
+
+.empty-state-icon {
+  opacity: 0.5;
+}
+
+/* Pagination */
+.pagination .page-link {
+  cursor: pointer;
+  padding: 0.375rem 0.75rem;
+  border-radius: 8px;
+  margin: 0 2px;
+}
+
+.pagination .disabled .page-link {
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+/* Scrollbar */
+.table-responsive::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+.table-responsive::-webkit-scrollbar-track {
+  background: var(--border-color);
+  border-radius: 3px;
+}
+
+.table-responsive::-webkit-scrollbar-thumb {
+  background: var(--primary);
+  border-radius: 3px;
+}
+
+/* Responsive */
+@media (max-width: 767.98px) {
+  .container {
+    padding: 0.5rem;
+  }
+  
+  .card {
+    margin-bottom: 0.75rem !important;
+  }
+}

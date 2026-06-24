@@ -1,0 +1,102 @@
+/* src/app/components/tokens/token-dashboard.component.css */
+.stat-card {
+  border-radius: 16px;
+  padding: 20px;
+  color: white;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.stat-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+}
+
+.stat-icon {
+  width: 60px;
+  height: 60px;
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 28px;
+}
+
+.stat-info {
+  flex: 1;
+}
+
+.stat-label {
+  margin: 0 0 4px 0;
+  font-size: 13px;
+  opacity: 0.9;
+  font-weight: 500;
+}
+
+.stat-value {
+  margin: 0;
+  font-size: 24px;
+  font-weight: 700;
+}
+
+/* Dégradés de couleurs */
+.stat-card.bg-primary { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); }
+.stat-card.bg-success { background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%); }
+.stat-card.bg-info { background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%); }
+.stat-card.bg-warning { background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); }
+.stat-card.bg-danger { background: linear-gradient(135deg, #fa709a 0%, #fee140 100%); }
+.stat-card.bg-secondary { background: linear-gradient(135deg, #757f9a 0%, #d7dde8 100%); }
+
+/* Tableau */
+.table tbody tr {
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.table tbody tr:hover {
+  background-color: rgba(13, 110, 253, 0.05);
+}
+
+/* Progress bar */
+.progress {
+  background-color: #e9ecef;
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+/* Theme sombre */
+.theme-dark .stat-card {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+.theme-dark .table tbody tr:hover {
+  background-color: rgba(96, 165, 250, 0.1);
+}
+
+.theme-dark .progress {
+  background-color: #2d3748;
+}
+
+/* Responsive */
+@media (max-width: 767.98px) {
+  .stat-card {
+    padding: 16px;
+  }
+  
+  .stat-icon {
+    width: 45px;
+    height: 45px;
+    font-size: 20px;
+  }
+  
+  .stat-value {
+    font-size: 18px;
+  }
+  
+  .stat-label {
+    font-size: 11px;
+  }
+}

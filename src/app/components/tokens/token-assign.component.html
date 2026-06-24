@@ -1,0 +1,252 @@
+<!-- src/app/components/tokens/token-assign.component.html -->
+<div class="container mt-4">
+  <!-- En-tête -->
+  <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
+    <h2 class="mb-0">
+      <i class="fa-solid fa-ticket me-2 text-primary"></i>
+      Attribution d'OM
+    </h2>
+    <a routerLink="/tokens" class="btn btn-outline-secondary">
+      <i class="fa-solid fa-arrow-left me-1"></i> Retour
+    </a>
+  </div>
+
+  <div class="row">
+    <!-- Colonne gauche : Liste des membres -->
+    <div class="col-md-5 col-lg-4 mb-4">
+      <div class="card border-0 shadow-sm h-100">
+        <div class="card-header bg-white border-0 pt-3">
+          <h5 class="mb-0">
+            <i class="fa-solid fa-users me-1 text-primary"></i>
+            Membres
+          </h5>
+        </div>
+        <div class="card-body">
+          <!-- Recherche -->
+          <div class="mb-3">
+            <div class="input-group">
+              <span class="input-group-text bg-white border-end-0">
+                <i class="fa-solid fa-magnifying-glass text-muted"></i>
+              </span>
+              <input
+                type="text"
+                class="form-control border-start-0 ps-0"
+                [(ngModel)]="filtreRecherche"
+                (ngModelChange)="onFiltreChange()"
+                placeholder="Rechercher par nom, prénom ou IM..."
+              />
+              <button
+                class="btn btn-outline-secondary"
+                (click)="clearFiltre()"
+                *ngIf="filtreRecherche"
+                type="button"
+              >
+                <i class="fa-solid fa-xmark"></i>
+              </button>
+            </div>
+          </div>
+
+          <!-- Lignes par page -->
+          <div class="row mb-3 g-2">
+            <div class="col-6">
+              <label class="form-label small text-muted">Lignes par page</label>
+              <select
+                class="form-select form-select-sm"
+                [(ngModel)]="itemsPerPage"
+                (ngModelChange)="onItemsPerPageChange()"
+              >
+                <option [value]="5">5</option>
+                <option [value]="10">10</option>
+                <option [value]="20">20</option>
+                <option [value]="50">50</option>
+              </select>
+            </div>
+            <div class="col-6">
+              <label class="form-label small text-muted">Résultats</label>
+              <div class="form-control-plaintext small">
+                {{ (currentPage - 1) * itemsPerPage + 1 }} -
+                {{
+                  currentPage * itemsPerPage > membresFiltres.length
+                    ? membresFiltres.length
+                    : currentPage * itemsPerPage
+                }}
+                /
+                {{ membresFiltres.length }}
+              </div>
+            </div>
+          </div>
+
+          <!-- Liste des membres -->
+          <div class="table-responsive" style="max-height: 500px; overflow-y: auto">
+            <table class="table table-hover mb-0 align-middle">
+              <thead class="table-light sticky-top">
+                <tr>
+                  <th>IM</th>
+                  <th>Nom complet</th>
+                  <th>Cat.</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr
+                  *ngFor="let member of membresPages"
+                  (click)="selectMember(member)"
+                  [class.table-primary]="membreSelectionne?.id === member.id"
+                  style="cursor: pointer"
+                >
+                  <td>
+                    <code class="fw-bold">{{ member.im }}</code>
+                  </td>
+                  <td>
+                    <i class="fa-regular fa-user me-1 text-muted"></i>
+                    {{ member.prenom }} {{ member.nom }}
+                  </td>
+                  <td>
+                    <span
+                      class="badge"
+                      [class.bg-primary]="member.categorie === 'A'"
+                      [class.bg-secondary]="member.categorie !== 'A'"
+                    >
+                      {{ member.categorie }}
+                    </span>
+                  </td>
+                </tr>
+                <tr *ngIf="membresFiltres.length === 0">
+                  <td colspan="3" class="text-center text-muted py-4">
+                    <i class="fa-solid fa-users-slash fa-2x mb-2 d-block"></i>
+                    Aucun membre trouvé
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <!-- Pagination -->
+          <nav *ngIf="totalPages > 1" class="mt-3">
+            <ul class="pagination justify-content-center pagination-sm">
+              <li class="page-item" [class.disabled]="currentPage === 1">
+                <button class="page-link" (click)="changePage(currentPage - 1)">
+                  <i class="fa-solid fa-chevron-left"></i>
+                </button>
+              </li>
+              <li class="page-item disabled">
+                <span class="page-link">{{ currentPage }} / {{ totalPages }}</span>
+              </li>
+              <li class="page-item" [class.disabled]="currentPage === totalPages">
+                <button class="page-link" (click)="changePage(currentPage + 1)">
+                  <i class="fa-solid fa-chevron-right"></i>
+                </button>
+              </li>
+            </ul>
+          </nav>
+        </div>
+      </div>
+    </div>
+
+    <!-- Colonne droite : Formulaire d'attribution -->
+    <div class="col-md-7 col-lg-8">
+      <div class="card border-0 shadow-sm">
+        <div class="card-header bg-white border-0 pt-3">
+          <h5 class="mb-0">
+            <i class="fa-solid fa-ticket me-1 text-success"></i>
+            {{ membreSelectionne ? 'Attribuer OM' : 'Aucun membre sélectionné' }}
+          </h5>
+        </div>
+        <div class="card-body">
+          <!-- Message si aucun membre sélectionné -->
+          <div *ngIf="!membreSelectionne" class="text-center py-5">
+            <div class="empty-state-icon mb-3">
+              <i class="fa-solid fa-hand-point-left fa-3x text-muted"></i>
+            </div>
+            <h5 class="text-muted mb-2">Aucun membre sélectionné</h5>
+            <p class="text-muted small mb-0">
+              Cliquez sur un membre dans la liste de gauche<br />
+              pour lui attribuer des OMs
+            </p>
+          </div>
+
+          <!-- Formulaire d'attribution -->
+          <div *ngIf="membreSelectionne">
+            <!-- Informations du membre sélectionné -->
+            <div class="alert alert-info mb-4">
+              <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
+                <div>
+                  <strong>
+                    <i class="fa-solid fa-user-circle me-1"></i>
+                    {{ membreSelectionne.prenom }} {{ membreSelectionne.nom }}
+                  </strong>
+                  <span class="badge bg-secondary ms-2">IM: {{ membreSelectionne.im }}</span>
+                  <span
+                    class="badge"
+                    [class.bg-primary]="membreSelectionne.categorie === 'A'"
+                    [class.bg-secondary]="membreSelectionne.categorie !== 'A'"
+                    class="ms-1"
+                  >
+                    Cat. {{ membreSelectionne.categorie }}
+                  </span>
+                </div>
+                <button class="btn btn-sm btn-outline-secondary" (click)="clearSelection()">
+                  <i class="fa-solid fa-times me-1"></i> Changer de membre
+                </button>
+              </div>
+            </div>
+
+            <!-- Formulaire -->
+            <div class="row g-3">
+              <div class="col-12 col-md-5">
+                <label class="form-label fw-bold">Type</label>
+                <select class="form-select" [(ngModel)]="selectedTokenTypeId">
+                  <option *ngFor="let type of tokenTypes" [value]="type.id">
+                    {{ type.name }} - {{ type.montant | spaceNumber }} Ar
+                  </option>
+                </select>
+              </div>
+              <div class="col-12 col-md-2">
+                <label class="form-label fw-bold">Quantité</label>
+                <input type="number" class="form-control" [(ngModel)]="tokenQuantity" min="1" />
+              </div>
+              <div class="col-12 col-md-3">
+                <label class="form-label fw-bold">Date attribution</label>
+                <input type="date" class="form-control" [(ngModel)]="selectedAttributionDate" />
+              </div>
+              <div class="col-12 col-md-2">
+                <label class="form-label fw-bold">Total</label>
+                <div class="form-control-plaintext fw-bold text-primary fs-5">
+                  {{ getMontantTotal() | spaceNumber }} Ar
+                </div>
+              </div>
+            </div>
+
+            <!-- Bouton attribution -->
+            <div class="mt-4">
+              <button
+                class="btn btn-primary btn-lg w-100"
+                (click)="assignTokens()"
+                [disabled]="isLoading"
+              >
+                <i
+                  class="fa-solid"
+                  [class.fa-spinner]="isLoading"
+                  [class.fa-plus]="!isLoading"
+                  [class.fa-spin]="isLoading"
+                ></i>
+                {{
+                  isLoading ? 'Attribution en cours...' : 'Attribuer ' + tokenQuantity + ' OM(s)'
+                }}
+              </button>
+            </div>
+
+            <!-- Messages -->
+            <div *ngIf="errorMessage" class="alert alert-danger mt-3">
+              <i class="fa-solid fa-circle-exclamation me-2"></i>
+              {{ errorMessage }}
+            </div>
+            <div *ngIf="successMessage" class="alert alert-success mt-3">
+              <i class="fa-solid fa-check-circle me-2"></i>
+              {{ successMessage }}
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

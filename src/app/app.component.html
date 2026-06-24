@@ -56,6 +56,11 @@
             <i class="fa-solid fa-users me-2"></i> Membres
           </a>
         </li>
+        <li class="nav-item" *ngIf="userRole === 'editor' || userRole === 'admin'">
+          <a class="nav-link" routerLink="/tokens">
+            <i class="fa-solid fa-ticket me-2"></i> Ordre de Mission
+          </a>
+        </li>
         <li class="nav-item" *ngIf="isAuthenticated">
           <a class="nav-link" routerLink="/cashier">
             <i class="fa-solid fa-money-bill-wave me-2"></i> Caisse
@@ -68,7 +73,7 @@
         </li>
         <li class="nav-item">
           <a class="nav-link" routerLink="/public/cotisations">
-            <i class="fa-solid fa-eye me-2"></i> Vue publique
+            <i class="fa-solid fa-eye me-2"></i> Rapports
           </a>
         </li>
         <li class="nav-item" *ngIf="userRole === 'admin'">
@@ -161,6 +166,11 @@
           </a>
         </li>
         <li class="nav-item" *ngIf="isAuthenticated">
+          <a class="nav-link" routerLink="/tokens" (click)="closeMobileSidebar()">
+            <i class="fa-solid fa-ticket me-2"></i> Ordre de mission
+          </a>
+        </li>
+        <li class="nav-item" *ngIf="isAuthenticated">
           <a class="nav-link" routerLink="/cashier" (click)="closeMobileSidebar()">
             <i class="fa-solid fa-money-bill-wave me-2"></i> Caisse
           </a>
@@ -172,7 +182,7 @@
         </li>
         <li class="nav-item">
           <a class="nav-link" routerLink="/public/cotisations" (click)="closeMobileSidebar()">
-            <i class="fa-solid fa-eye me-2"></i> Vue publique
+            <i class="fa-solid fa-eye me-2"></i> Rapports
           </a>
         </li>
         <li class="nav-item" *ngIf="userRole === 'admin'">

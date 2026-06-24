@@ -1,0 +1,56 @@
+/* src/app/components/tokens/member-tokens.component.css */
+.table tbody tr {
+  transition: background-color 0.2s ease;
+}
+
+.table tbody tr:hover {
+  background-color: rgba(13, 110, 253, 0.05);
+}
+
+/* Checkbox styling */
+.form-check-input {
+  cursor: pointer;
+  width: 18px;
+  height: 18px;
+}
+
+.form-check-input:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
+/* Badge styles */
+.badge {
+  font-weight: 500;
+  padding: 5px 10px;
+}
+
+/* Card hover effect */
+.card {
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+}
+
+/* Theme sombre */
+.theme-dark .table tbody tr:hover {
+  background-color: rgba(96, 165, 250, 0.1);
+}
+
+.theme-dark .bg-light {
+  background-color: #1a202c !important;
+}
+
+/* Responsive */
+@media (max-width: 767.98px) {
+  .btn-group {
+    flex-wrap: wrap;
+  }
+  
+  .btn-group .btn {
+    flex: 1;
+  }
+}

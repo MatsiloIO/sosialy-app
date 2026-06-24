@@ -153,8 +153,14 @@ import { AuthService } from '../../services/auth.service';
                                 type="submit" 
                                 class="btn btn-primary" 
                                 [disabled]="loading">
-                                <i class="fa-solid" [ngClass]="loading ? 'fa-spinner fa-spin' : 'fa-save'"></i>
-                                {{ loading ? 'Création en cours...' : 'Créer l\'utilisateur' }}
+                                <ng-container *ngIf="loading; else notLoading">
+                                    <i class="fa-solid fa-spinner fa-spin"></i>
+                                    Création en cours...
+                                </ng-container>
+                                <ng-template #notLoading>
+                                    <i class="fa-solid fa-save"></i>
+                                    Créer l'utilisateur
+                                </ng-template>
                             </button>
                             <button 
                                 type="button" 

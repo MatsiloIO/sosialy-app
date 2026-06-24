@@ -1,0 +1,281 @@
+<!-- src/app/components/tokens/member-tokens.component.html -->
+<div class="container mt-4">
+  <!-- En-tête avec navigation -->
+  <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
+    <div>
+      <a routerLink="/tokens" class="btn btn-outline-secondary btn-sm mb-2">
+        <i class="fa-solid fa-arrow-left me-1"></i> Retour
+      </a>
+      <h2 class="mb-0 mt-2">
+        <i class="fa-solid fa-user-circle me-2 text-primary"></i>
+        {{ memberName }}
+        <small class="text-muted fs-6">({{ memberIM }})</small>
+      </h2>
+    </div>
+    <div class="d-flex gap-2">
+      <span class="badge" [class.bg-success]="canEdit" [class.bg-secondary]="!canEdit">
+        <i class="fa-solid" [class.fa-pen]="canEdit" [class.fa-eye]="!canEdit"></i>
+        {{ canEdit ? 'Mode édition' : 'Lecture seule' }}
+      </span>
+      <span *ngIf="isAdmin" class="badge bg-warning text-dark">
+        <i class="fa-solid fa-crown"></i> Administrateur
+      </span>
+    </div>
+  </div>
+
+  <!-- Formulaire d'attribution -->
+  <div *ngIf="canEdit" class="card border-0 shadow-sm mb-4">
+    <div class="card-body">
+      <div class="d-flex justify-content-between align-items-center mb-3">
+        <h5 class="mb-0">
+          <i class="fa-solid fa-ticket me-1 text-primary"></i>
+          Attribuer un jeton
+        </h5>
+        <button class="btn btn-sm btn-outline-secondary" (click)="toggleAssignForm()">
+          <i
+            class="fa-solid"
+            [class.fa-chevron-up]="showAssignForm"
+            [class.fa-chevron-down]="!showAssignForm"
+          ></i>
+        </button>
+      </div>
+
+      <div *ngIf="showAssignForm">
+        <div class="row g-3 align-items-end">
+          <div class="col-12 col-md-4">
+            <label class="form-label small fw-bold text-muted">Type de jeton</label>
+            <select class="form-select" [(ngModel)]="selectedTokenTypeId">
+              <option *ngFor="let type of tokenTypes" [value]="type.id">
+                {{ type.name }} - {{ type.montant | spaceNumber }} Ar
+              </option>
+            </select>
+          </div>
+          <div class="col-12 col-md-2">
+            <label class="form-label small fw-bold text-muted">Quantité</label>
+            <input type="number" class="form-control" [(ngModel)]="tokenQuantity" min="1" />
+          </div>
+          <div class="col-12 col-md-3">
+            <label class="form-label small fw-bold text-muted">Date attribution</label>
+            <input type="date" class="form-control" [(ngModel)]="attributionDate" />
+          </div>
+          <div class="col-12 col-md-3">
+            <button class="btn btn-primary w-100" (click)="assignTokens()" [disabled]="isLoading">
+              <i class="fa-solid fa-plus me-1"></i> Attribuer
+            </button>
+          </div>
+          <div class="col-12 col-md-2">
+            <button class="btn btn-outline-secondary w-100" (click)="toggleAssignForm()">
+              Annuler
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <app-loading-indicator
+    *ngIf="isLoading"
+    message="Chargement des jetons..."
+  ></app-loading-indicator>
+
+  <!-- Section paiement -->
+  <div *ngIf="selectedTokenIds.length > 0 && canEdit" class="card border-0 shadow-sm mb-4 bg-light">
+    <div class="card-body">
+      <h5 class="mb-3">
+        <i class="fa-solid fa-credit-card me-1 text-success"></i>
+        Paiement sélectionné
+      </h5>
+      <div class="row g-3 align-items-end">
+        <div class="col-12 col-md-3">
+          <label class="form-label small fw-bold text-muted">Date paiement</label>
+          <input type="date" class="form-control" [(ngModel)]="paymentDate" />
+        </div>
+        <div class="col-12 col-md-3">
+          <label class="form-label small fw-bold text-muted">Mode paiement</label>
+          <select class="form-select" [(ngModel)]="paymentMode">
+            <option value="especes">💰 Espèces</option>
+            <option value="cheque">📝 Chèque</option>
+            <option value="virement">💻 Virement</option>
+          </select>
+        </div>
+        <div class="col-12 col-md-3">
+          <label class="form-label small fw-bold text-muted">Total</label>
+          <h5 class="mb-0 text-success">{{ getSelectedTotal() | spaceNumber }} Ar</h5>
+        </div>
+        <div class="col-12 col-md-3">
+          <button
+            class="btn btn-success w-100"
+            (click)="paySelectedTokens()"
+            [disabled]="isLoading"
+          >
+            <i class="fa-solid fa-check-circle me-1"></i> Payer
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Filtres -->
+  <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+    <div class="btn-group btn-group-sm">
+      <button
+        class="btn"
+        [class.btn-primary]="filterStatut === 'tous'"
+        [class.btn-outline-secondary]="filterStatut !== 'tous'"
+        (click)="filterStatut = 'tous'; applyFilter()"
+      >
+        Tous
+      </button>
+      <button
+        class="btn"
+        [class.btn-warning]="filterStatut === 'en_attente'"
+        [class.btn-outline-secondary]="filterStatut !== 'en_attente'"
+        (click)="filterStatut = 'en_attente'; applyFilter()"
+      >
+        <i class="fa-solid fa-clock me-1"></i> En attente
+      </button>
+      <button
+        class="btn"
+        [class.btn-success]="filterStatut === 'paye'"
+        [class.btn-outline-secondary]="filterStatut !== 'paye'"
+        (click)="filterStatut = 'paye'; applyFilter()"
+      >
+        <i class="fa-solid fa-check-circle me-1"></i> Payés
+      </button>
+    </div>
+    <div *ngIf="selectedTokenIds.length > 0" class="text-muted small">
+      {{ selectedTokenIds.length }} jeton(s) sélectionné(s)
+    </div>
+  </div>
+
+  <!-- Version Desktop : Tableau -->
+  <div class="card border-0 shadow-sm d-none d-md-block">
+    <div class="card-body p-0">
+      <div class="table-responsive">
+        <table class="table table-hover mb-0 align-middle">
+          <thead class="table-light">
+            <tr>
+              <th *ngIf="canEdit" style="width: 40px"></th>
+              <th>Date attribution</th>
+              <th>Type</th>
+              <th class="text-end">Montant</th>
+              <th>Statut</th>
+              <th>Date paiement</th>
+              <th class="text-center">Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let token of filteredTokens">
+              <td *ngIf="canEdit" class="text-center">
+                <input
+                  type="checkbox"
+                  [checked]="isTokenSelected(token.id)"
+                  (change)="toggleTokenSelection(token.id)"
+                  [disabled]="token.statut !== 'en_attente'"
+                  class="form-check-input"
+                />
+              </td>
+              <td>{{ token.date_attribution | date: 'dd/MM/yyyy' }}</td>
+              <td>{{ token.token_type?.name || '-' }}</td>
+              <td class="text-end">{{ token.montant | spaceNumber }} Ar</td>
+              <td>
+                <span class="badge" [class]="getStatusBadgeClass(token.statut)">
+                  <i class="fa-solid me-1" [class]="getStatusIcon(token.statut)"></i>
+                  {{ getStatusText(token.statut) }}
+                </span>
+              </td>
+              <td>{{ token.date_paiement ? (token.date_paiement | date: 'dd/MM/yyyy') : '-' }}</td>
+              <td class="text-center">
+                <div class="d-flex justify-content-end gap-2 mt-2">
+                  <button
+                    *ngIf="token.statut === 'paye' && token.revenue_id"
+                    class="btn btn-sm btn-outline-info"
+                    (click)="viewRevenue(token)"
+                  >
+                    <i class="fa-solid fa-receipt"></i> Recette
+                  </button>
+                  <button
+                    *ngIf="isAdmin && token.statut !== 'paye'"
+                    class="btn btn-sm btn-outline-danger"
+                    (click)="cancelToken(token.id)"
+                  >
+                    <i class="fa-solid fa-trash"></i> Supprimer
+                  </button>
+                </div>
+              </td>
+            </tr>
+            <tr *ngIf="filteredTokens.length === 0">
+              <td [attr.colspan]="canEdit ? 7 : 6" class="text-center text-muted py-5">
+                <i class="fa-solid fa-ticket fa-2x mb-2 d-block"></i>
+                Aucun jeton trouvé
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- Version Mobile : Cartes -->
+  <div class="d-md-none">
+    <div *ngFor="let token of filteredTokens" class="card mb-2 border-0 shadow-sm">
+      <div class="card-body p-3">
+        <div class="d-flex justify-content-between align-items-start mb-2">
+          <div>
+            <span class="badge" [class]="getStatusBadgeClass(token.statut)">
+              {{ getStatusText(token.statut) }}
+            </span>
+          </div>
+          <div *ngIf="canEdit && token.statut === 'en_attente'">
+            <input
+              type="checkbox"
+              [checked]="isTokenSelected(token.id)"
+              (change)="toggleTokenSelection(token.id)"
+              class="form-check-input"
+            />
+          </div>
+        </div>
+        <div class="row g-2 mb-2">
+          <div class="col-6">
+            <small class="text-muted d-block">Date attribution</small>
+            <strong>{{ token.date_attribution | date: 'dd/MM/yyyy' }}</strong>
+          </div>
+          <div class="col-6">
+            <small class="text-muted d-block">Type</small>
+            <strong>{{ token.token_type?.name || '-' }}</strong>
+          </div>
+        </div>
+        <div class="row g-2 mb-2">
+          <div class="col-6">
+            <small class="text-muted d-block">Montant</small>
+            <strong class="text-primary">{{ token.montant | spaceNumber }} Ar</strong>
+          </div>
+          <div class="col-6" *ngIf="token.date_paiement">
+            <small class="text-muted d-block">Date paiement</small>
+            <strong>{{ token.date_paiement | date: 'dd/MM/yyyy' }}</strong>
+          </div>
+        </div>
+        <div class="d-flex justify-content-end gap-2 mt-2">
+          <button
+            *ngIf="token.statut === 'paye' && token.revenue_id"
+            class="btn btn-sm btn-outline-info"
+            (click)="viewRevenue(token)"
+          >
+            <i class="fa-solid fa-receipt"></i> Recette
+          </button>
+          <button
+            *ngIf="isAdmin && token.statut !== 'annule'"
+            class="btn btn-sm btn-outline-danger"
+            (click)="cancelToken(token.id)"
+          >
+            <i class="fa-solid fa-ban"></i> Annuler
+          </button>
+        </div>
+      </div>
+    </div>
+    <div *ngIf="filteredTokens.length === 0" class="text-center text-muted py-5">
+      <i class="fa-solid fa-ticket fa-2x mb-2 d-block"></i>
+      Aucun jeton trouvé
+    </div>
+  </div>
+</div>

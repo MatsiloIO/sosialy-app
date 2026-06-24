@@ -21,6 +21,8 @@ export class MembersListComponent implements OnInit {
   filteredMembers: Member[] = [];
   filterText: string = '';
   filterCategory: 'all' | 'A' | 'B' = 'all';
+  sortColumn: keyof Member | null = null;
+  sortDirection: 'asc' | 'desc' = 'asc';
   currentPage: number = 1;
   pageSize: number = 10;
   totalPages: number = 1;
@@ -63,10 +65,24 @@ export class MembersListComponent implements OnInit {
     }
   }
 
+  isMemberFormValid(): boolean {
+    return Boolean(
+      this.formData.nom?.trim() &&
+      this.formData.prenom?.trim() &&
+      this.formData.im?.trim() &&
+      this.formData.service?.trim()
+    );
+  }
+
   async saveMember() {
     // ✅ Vérification des droits
     if (!this.canEdit) {
       alert('Vous n\'avez pas les droits pour modifier les membres');
+      return;
+    }
+
+    if (!this.isMemberFormValid()) {
+      alert('Veuillez remplir le nom, le prénom, le service et l\'IM pour enregistrer ce membre.');
       return;
     }
 
@@ -123,6 +139,24 @@ export class MembersListComponent implements OnInit {
       results = results.filter(member => member.categorie === this.filterCategory);
     }
 
+    if (this.sortColumn) {
+      const column = this.sortColumn;
+      const direction = this.sortDirection === 'asc' ? 1 : -1;
+
+      results.sort((a, b) => {
+        const valA = (a as any)[column];
+        const valB = (b as any)[column];
+
+        if (typeof valA === 'string' && typeof valB === 'string') {
+          return valA.localeCompare(valB) * direction;
+        }
+
+        if (valA < valB) return -1 * direction;
+        if (valA > valB) return 1 * direction;
+        return 0;
+      });
+    }
+
     this.filteredMembers = results;
     this.currentPage = 1;
     this.updatePagination();
@@ -149,6 +183,16 @@ export class MembersListComponent implements OnInit {
     this.currentPage = 1;
     this.updatePagination();
     this.settingsService.savePageSize('pagination.pageSize.members', this.pageSize);
+  }
+
+  toggleSort(column: keyof Member) {
+    if (this.sortColumn === column) {
+      this.sortDirection = this.sortDirection === 'asc' ? 'desc' : 'asc';
+    } else {
+      this.sortColumn = column;
+      this.sortDirection = 'asc';
+    }
+    this.applyFilter();
   }
 
   getPageArray(): number[] {

@@ -12,6 +12,9 @@ import { RoleGuard } from './guards/role.guard';
 import { PublicGuard } from './guards/public.guard';
 import { ProfileComponent } from './components/profile/profile.component';
 import { CreateUserComponent } from './components/admin/create-user.component';
+import { TokenDashboardComponent } from './components/tokens/token-dashboard.component';
+import { MemberTokensComponent } from './components/tokens/member-tokens.component';
+import { TokenAssignComponent } from './components/tokens/token-assign.component';
 
 export const routes: Routes = [
     { path: '', redirectTo: '/members', pathMatch: 'full' },
@@ -31,6 +34,22 @@ export const routes: Routes = [
         component: MembersListComponent,
         canActivate: [AuthGuard]
         // editor et admin peuvent voir/modifier (défini dans les politiques RLS)
+    },
+    {
+        path: 'tokens',
+        component: TokenDashboardComponent,
+        canActivate: [AuthGuard]
+    },
+    {
+        path: 'tokens/member/:id',
+        component: MemberTokensComponent,
+        canActivate: [AuthGuard]
+    },
+    {
+        path: 'tokens/assign',
+        component: TokenAssignComponent,
+        canActivate: [AuthGuard, RoleGuard],
+        data: { requiredRole: 'editor' }
     },
     {
         path: 'cashier',

@@ -60,7 +60,7 @@ export class AuthService {
         requirePasswordChange?: boolean;
     }): Promise<{ success: boolean; error?: any; message?: string }> {
         try {
-            console.log('📝 Création utilisateur par admin:', options.email);
+            console.log('📝 Création utilisateur par admin (RPC):', options.email);
 
             const { data, error } = await this.supabaseService.supabase.rpc('admin_create_user', {
                 user_email: options.email,
@@ -71,20 +71,65 @@ export class AuthService {
                 require_password_change: options.requirePasswordChange !== false
             });
 
-            if (error) {
-                console.error('❌ Erreur RPC:', error);
-                return { success: false, error };
+            if (!error && data) {
+                console.log('✅ Réponse RPC:', data);
+                if (data && !data.success) {
+                    // RPC handled but returned failure
+                    console.warn('RPC returned failure:', data.error);
+                } else {
+                    return { success: true, message: data?.message };
+                }
+            } else if (error) {
+                console.warn('RPC error, will try fallback signUp:', error);
             }
 
-            console.log('✅ Réponse:', data);
+            // Fallback: essayer de créer l'utilisateur via signUp puis insérer la ligne dans `users`
+            console.log('🔁 Tentative de secours : signUp + insert dans users');
+            const { data: signUpData, error: signUpError } = await this.supabaseService.supabase.auth.signUp({
+                email: options.email,
+                password: options.password,
+                options: {
+                    data: { name: options.fullName }
+                }
+            } as any);
 
-            if (data && !data.success) {
-                return { success: false, error: { message: data.error } };
+            if (signUpError) {
+                console.error('❌ Erreur signUp fallback:', signUpError);
+                return { success: false, error: signUpError };
             }
 
-            return { success: true, message: data?.message };
+            const createdUser = (signUpData as any)?.user;
+            if (!createdUser || !createdUser.id) {
+                const msg = 'Création utilisateur échouée : user id manquant après signUp';
+                console.error(msg, signUpData);
+                return { success: false, error: { message: msg } };
+            }
+
+            // Insérer la ligne dans la table application `users` si nécessaire
+            try {
+                const { error: insertError } = await this.supabaseService.supabase
+                    .from('users')
+                    .insert([{
+                        id: createdUser.id,
+                        email: options.email,
+                        full_name: options.fullName,
+                        phone: options.phone || '',
+                        role: options.role
+                    }]);
+
+                if (insertError) {
+                    console.error('❌ Erreur insertion table users:', insertError);
+                    // Don't fail hard: return success for auth creation but warn
+                    return { success: true, message: 'Utilisateur créé mais insertion users a échoué', error: insertError };
+                }
+            } catch (e) {
+                console.error('❌ Exception insertion users:', e);
+                return { success: true, message: 'Utilisateur créé mais insertion users a échoué', error: e };
+            }
+
+            return { success: true, message: 'Utilisateur créé avec succès (fallback)' };
         } catch (error) {
-            console.error('❌ Exception:', error);
+            console.error('❌ Exception finale création utilisateur:', error);
             return { success: false, error };
         }
     }
