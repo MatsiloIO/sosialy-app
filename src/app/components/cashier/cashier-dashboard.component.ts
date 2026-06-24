@@ -3,6 +3,7 @@ import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { SupabaseService } from '../../services/supabase.service';
+import { SettingsService } from '../../services/settings.service';
 import { SpaceNumberPipe } from '../../pipes/space-number.pipe';
 import { LoadingIndicatorComponent } from '../shared/loading-indicator.component';
 import { Expense, ExpenseForm, OtherRevenue, OtherRevenueForm } from '../../models';
@@ -63,12 +64,20 @@ export class CashierDashboardComponent implements OnInit {
 
   constructor(
     private supabase: SupabaseService,
-    private authService: AuthService
+    private authService: AuthService,
+    private settingsService: SettingsService
   ) { }
 
   async ngOnInit() {
     await this.loadUserRole();
     await this.loadCategories();
+    // initialize settings and load saved page size for other revenues
+    try {
+      await this.settingsService.initSettings();
+    } catch (e) {
+      // ignore if settings init fails
+    }
+    this.revenueItemsPerPage = this.settingsService.getSavedPageSize('otherRevenuesPageSize', this.revenueItemsPerPage);
     await this.loadAll();
   }
 
@@ -317,6 +326,14 @@ export class CashierDashboardComponent implements OnInit {
   changeRevenuePage(page: number) {
     if (page < 1 || page > this.revenueTotalPages) return;
     this.revenueCurrentPage = page;
+    this.updateRevenuePagination();
+  }
+
+  changeRevenueItemsPerPage(size: number) {
+    const newSize = Number(size) || this.revenueItemsPerPage;
+    if (!Number.isFinite(newSize) || newSize <= 0) return;
+    this.revenueItemsPerPage = Math.round(newSize);
+    this.settingsService.savePageSize('otherRevenuesPageSize', this.revenueItemsPerPage);
     this.updateRevenuePagination();
   }
 

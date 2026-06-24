@@ -433,3 +433,14 @@ app-root {
         opacity: 1;
     }
 }
+
+/* Override pour `.text-muted` afin de préserver le design (light/dark)
+   Utilise la variable `--muted` définie dans :root / .theme-dark */
+.text-muted {
+  color: var(--muted) !important;
+  opacity: 1 !important;
+}
+
+.theme-dark .text-muted {
+  color: var(--muted) !important;
+}

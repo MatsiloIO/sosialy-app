@@ -363,7 +363,24 @@
           class="d-flex justify-content-between align-items-center p-3 border-top"
           *ngIf="revenueTotalPages > 1"
         >
-          <div class="small">Page {{ revenueCurrentPage }} / {{ revenueTotalPages }}</div>
+          <div class="d-flex align-items-center gap-3">
+            <div class="small">Page {{ revenueCurrentPage }} / {{ revenueTotalPages }}</div>
+            <div class="d-flex align-items-center gap-2">
+              <label class="small mb-0">Afficher</label>
+              <select
+                class="form-select form-select-sm"
+                [(ngModel)]="revenueItemsPerPage"
+                (change)="changeRevenueItemsPerPage(revenueItemsPerPage)"
+                style="width: auto"
+              >
+                <option [value]="5">5</option>
+                <option [value]="10">10</option>
+                <option [value]="20">20</option>
+                <option [value]="50">50</option>
+              </select>
+              <div class="small mb-0">éléments</div>
+            </div>
+          </div>
           <nav>
             <ul class="pagination pagination-sm mb-0">
               <li class="page-item" [class.disabled]="revenueCurrentPage === 1">
