@@ -164,10 +164,20 @@ export class CashierDashboardComponent implements OnInit {
     }
   }
 
+  private getMontantMensuel(items: Array<{ date?: string; created_at?: string; montant: number }>, date: Date, annee: number): number {
+    return items.filter(item => {
+      const rawDate = item.created_at ?? item.date;
+      const itemDate = rawDate ? new Date(rawDate) : new Date(NaN);
+      return !Number.isNaN(itemDate.getTime()) && itemDate.getMonth() === date.getMonth() && itemDate.getFullYear() === annee;
+    }).reduce((sum, item) => sum + item.montant, 0);
+  }
+
   async loadGraphiques() {
     this.loading.graphiques = true;
 
     try {
+      const contributions = await this.supabase.getContributions();
+
       // Analyse par catégorie de dépenses
       this.depensesParCategorie = {};
       this.expenses.forEach(expense => {
@@ -187,15 +197,9 @@ export class CashierDashboardComponent implements OnInit {
         const moisNom = date.toLocaleString('fr', { month: 'long' });
         const annee = date.getFullYear();
 
-        const recettesMois = this.revenues.filter(r => {
-          const rDate = new Date(r.date);
-          return rDate.getMonth() === date.getMonth() && rDate.getFullYear() === annee;
-        }).reduce((sum, r) => sum + r.montant, 0);
+        const recettesMois = this.getMontantMensuel(this.revenues, date, annee) + this.getMontantMensuel(contributions, date, annee);
 
-        const depensesMois = this.expenses.filter(e => {
-          const eDate = new Date(e.date);
-          return eDate.getMonth() === date.getMonth() && eDate.getFullYear() === annee;
-        }).reduce((sum, e) => sum + e.montant, 0);
+        const depensesMois = this.getMontantMensuel(this.expenses, date, annee);
 
         this.evolutionMensuelle.push({
           mois: moisNom,
