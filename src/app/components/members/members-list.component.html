@@ -4,7 +4,7 @@
   <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
     <h2 class="mb-0">
       <i class="fa-solid fa-users me-2 text-primary"></i>
-      Gestion des membres
+      Gestion des membres.
     </h2>
     <div class="d-flex gap-2">
       <span class="badge" [class.bg-success]="canEdit" [class.bg-secondary]="!canEdit">
@@ -21,58 +21,29 @@
   <div class="card border-0 shadow-sm mb-4" *ngIf="canEdit">
     <div class="card-body">
       <h5 class="mb-3">
-        <i
-          class="fa-solid"
-          [class.fa-user-plus]="!editingMember"
-          [class.fa-user-pen]="editingMember"
-        ></i>
+        <i class="fa-solid" [class.fa-user-plus]="!editingMember" [class.fa-user-pen]="editingMember"></i>
         {{ editingMember ? 'Modifier le membre' : 'Ajouter un membre' }}
       </h5>
       <form #memberForm="ngForm" novalidate>
         <!-- Champs du formulaire sur une seule ligne -->
         <div class="row g-2">
           <div class="col-md-4">
-            <input
-              [(ngModel)]="formData.nom"
-              name="nom"
-              required
-              placeholder="Nom"
-              class="form-control form-control-sm"
-            />
+            <input [(ngModel)]="formData.nom" name="nom" required placeholder="Nom"
+              class="form-control form-control-sm" />
           </div>
           <div class="col-md-4">
-            <input
-              [(ngModel)]="formData.prenom"
-              name="prenom"
-              required
-              placeholder="Prénom"
-              class="form-control form-control-sm"
-            />
+            <input [(ngModel)]="formData.prenom" name="prenom" required placeholder="Prénom"
+              class="form-control form-control-sm" />
           </div>
           <div class="col-md-1">
-            <input
-              [(ngModel)]="formData.im"
-              name="im"
-              required
-              placeholder="IM"
-              class="form-control form-control-sm"
-            />
+            <input [(ngModel)]="formData.im" name="im" required placeholder="IM" class="form-control form-control-sm" />
           </div>
           <div class="col-md-1">
-            <input
-              [(ngModel)]="formData.service"
-              name="service"
-              required
-              placeholder="Service"
-              class="form-control form-control-sm"
-            />
+            <input [(ngModel)]="formData.service" name="service" required placeholder="Service"
+              class="form-control form-control-sm" />
           </div>
           <div class="col-md-2">
-            <select
-              [(ngModel)]="formData.categorie"
-              name="categorie"
-              class="form-select form-select-sm"
-            >
+            <select [(ngModel)]="formData.categorie" name="categorie" class="form-select form-select-sm">
               <option value="A">Catégorie A</option>
               <option value="B">Catégorie B</option>
             </select>
@@ -86,20 +57,12 @@
       </div>
       <!-- ✅ Boutons en bas -->
       <div class="mt-3">
-        <button
-          (click)="saveMember()"
-          class="btn btn-primary btn-sm"
-          [disabled]="isLoading || !isMemberFormValid()"
-        >
+        <button (click)="saveMember()" class="btn btn-primary btn-sm" [disabled]="isLoading || !isMemberFormValid()">
           <i class="fa-solid" [class.fa-plus]="!editingMember" [class.fa-save]="editingMember"></i>
           {{ editingMember ? 'Modifier' : 'Ajouter' }}
         </button>
-        <button
-          *ngIf="editingMember"
-          (click)="cancelEdit()"
-          class="btn btn-secondary btn-sm ms-2"
-          [disabled]="isLoading"
-        >
+        <button *ngIf="editingMember" (click)="cancelEdit()" class="btn btn-secondary btn-sm ms-2"
+          [disabled]="isLoading">
           <i class="fa-solid fa-xmark"></i> Annuler
         </button>
       </div>
@@ -112,10 +75,7 @@
     Vous êtes en mode lecture seule. Vous ne pouvez pas modifier la liste des membres.
   </div>
 
-  <app-loading-indicator
-    *ngIf="isLoading"
-    message="Chargement des membres..."
-  ></app-loading-indicator>
+  <app-loading-indicator *ngIf="isLoading" message="Chargement des membres..."></app-loading-indicator>
 
   <!-- Filtres -->
   <div class="row g-2 mb-3 align-items-end">
@@ -125,30 +85,17 @@
         <span class="input-group-text bg-white border-end-0">
           <i class="fa-solid fa-magnifying-glass"></i>
         </span>
-        <input
-          class="form-control border-start-0 ps-0"
-          type="text"
-          placeholder="Nom, prénom, IM, service..."
-          [(ngModel)]="filterText"
-          (ngModelChange)="applyFilter()"
-        />
-        <button
-          class="btn btn-outline-secondary"
-          (click)="filterText = ''; applyFilter()"
-          *ngIf="filterText"
-          type="button"
-        >
+        <input class="form-control border-start-0 ps-0" type="text" placeholder="Nom, prénom, IM, service..."
+          [(ngModel)]="filterText" (ngModelChange)="applyFilter()" />
+        <button class="btn btn-outline-secondary" (click)="filterText = ''; applyFilter()" *ngIf="filterText"
+          type="button">
           <i class="fa-solid fa-xmark"></i>
         </button>
       </div>
     </div>
     <div class="col-md-3">
       <label class="form-label small fw-bold">Catégorie</label>
-      <select
-        class="form-select form-select-sm"
-        [(ngModel)]="filterCategory"
-        (ngModelChange)="applyFilter()"
-      >
+      <select class="form-select form-select-sm" [(ngModel)]="filterCategory" (ngModelChange)="applyFilter()">
         <option value="all">Toutes les catégories</option>
         <option value="A">Catégorie A</option>
         <option value="B">Catégorie B</option>
@@ -156,11 +103,7 @@
     </div>
     <div class="col-md-3">
       <label class="form-label small fw-bold">Lignes par page</label>
-      <select
-        class="form-select form-select-sm"
-        [(ngModel)]="pageSize"
-        (ngModelChange)="onPageSizeChange()"
-      >
+      <select class="form-select form-select-sm" [(ngModel)]="pageSize" (ngModelChange)="onPageSizeChange()">
         <option [value]="5">5 lignes</option>
         <option [value]="10">10 lignes</option>
         <option [value]="20">20 lignes</option>
@@ -184,48 +127,33 @@
           <tr class="sortable-header-row">
             <th (click)="toggleSort('im')" class="sortable-header">
               IM
-              <i
-                class="fa-solid ms-1"
-                [class.fa-sort-up]="sortColumn === 'im' && sortDirection === 'asc'"
+              <i class="fa-solid ms-1" [class.fa-sort-up]="sortColumn === 'im' && sortDirection === 'asc'"
                 [class.fa-sort-down]="sortColumn === 'im' && sortDirection === 'desc'"
-                [class.fa-sort]="sortColumn !== 'im'"
-              ></i>
+                [class.fa-sort]="sortColumn !== 'im'"></i>
             </th>
             <th (click)="toggleSort('nom')" class="sortable-header">
               Nom
-              <i
-                class="fa-solid ms-1"
-                [class.fa-sort-up]="sortColumn === 'nom' && sortDirection === 'asc'"
+              <i class="fa-solid ms-1" [class.fa-sort-up]="sortColumn === 'nom' && sortDirection === 'asc'"
                 [class.fa-sort-down]="sortColumn === 'nom' && sortDirection === 'desc'"
-                [class.fa-sort]="sortColumn !== 'nom'"
-              ></i>
+                [class.fa-sort]="sortColumn !== 'nom'"></i>
             </th>
             <th (click)="toggleSort('prenom')" class="sortable-header">
               Prénom
-              <i
-                class="fa-solid ms-1"
-                [class.fa-sort-up]="sortColumn === 'prenom' && sortDirection === 'asc'"
+              <i class="fa-solid ms-1" [class.fa-sort-up]="sortColumn === 'prenom' && sortDirection === 'asc'"
                 [class.fa-sort-down]="sortColumn === 'prenom' && sortDirection === 'desc'"
-                [class.fa-sort]="sortColumn !== 'prenom'"
-              ></i>
+                [class.fa-sort]="sortColumn !== 'prenom'"></i>
             </th>
             <th (click)="toggleSort('service')" class="sortable-header">
               Service
-              <i
-                class="fa-solid ms-1"
-                [class.fa-sort-up]="sortColumn === 'service' && sortDirection === 'asc'"
+              <i class="fa-solid ms-1" [class.fa-sort-up]="sortColumn === 'service' && sortDirection === 'asc'"
                 [class.fa-sort-down]="sortColumn === 'service' && sortDirection === 'desc'"
-                [class.fa-sort]="sortColumn !== 'service'"
-              ></i>
+                [class.fa-sort]="sortColumn !== 'service'"></i>
             </th>
             <th (click)="toggleSort('categorie')" class="sortable-header">
               Catégorie
-              <i
-                class="fa-solid ms-1"
-                [class.fa-sort-up]="sortColumn === 'categorie' && sortDirection === 'asc'"
+              <i class="fa-solid ms-1" [class.fa-sort-up]="sortColumn === 'categorie' && sortDirection === 'asc'"
                 [class.fa-sort-down]="sortColumn === 'categorie' && sortDirection === 'desc'"
-                [class.fa-sort]="sortColumn !== 'categorie'"
-              ></i>
+                [class.fa-sort]="sortColumn !== 'categorie'"></i>
             </th>
             <th *ngIf="canEdit" class="text-center">Actions</th>
           </tr>
@@ -239,30 +167,18 @@
             <td>{{ member.prenom }}</td>
             <td>{{ member.service }}</td>
             <td>
-              <span
-                class="badge"
-                [class.bg-primary]="member.categorie === 'A'"
-                [class.bg-secondary]="member.categorie === 'B'"
-              >
+              <span class="badge" [class.bg-primary]="member.categorie === 'A'"
+                [class.bg-secondary]="member.categorie === 'B'">
                 {{ member.categorie }}
               </span>
             </td>
             <td *ngIf="canEdit" class="text-center">
-              <button
-                (click)="editMember(member)"
-                class="btn btn-sm btn-outline-warning me-1"
-                [disabled]="isLoading"
-                title="Modifier"
-              >
+              <button (click)="editMember(member)" class="btn btn-sm btn-outline-warning me-1" [disabled]="isLoading"
+                title="Modifier">
                 <i class="fa-solid fa-pen"></i>
               </button>
-              <button
-                *ngIf="isAdmin"
-                (click)="deleteMember(member.id)"
-                class="btn btn-sm btn-outline-danger"
-                [disabled]="isLoading"
-                title="Supprimer"
-              >
+              <button *ngIf="isAdmin" (click)="deleteMember(member.id)" class="btn btn-sm btn-outline-danger"
+                [disabled]="isLoading" title="Supprimer">
                 <i class="fa-solid fa-trash"></i>
               </button>
               <span *ngIf="!isAdmin && canEdit" class="small">
@@ -305,11 +221,7 @@
             <i class="fa-solid fa-chevron-left"></i>
           </button>
         </li>
-        <li
-          class="page-item"
-          *ngFor="let page of getPageArray()"
-          [class.active]="currentPage === page"
-        >
+        <li class="page-item" *ngFor="let page of getPageArray()" [class.active]="currentPage === page">
           <button class="page-link" type="button" (click)="changePage(page)">
             {{ page }}
           </button>
