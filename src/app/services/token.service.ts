@@ -292,13 +292,21 @@ export class TokenService {
     };
   }
 
-  async getMemberTokenSummary(): Promise<MemberTokenSummary[]> {
-    const { data, error } = await this.supabase.supabase.from('member_tokens').select(`
+  async getMemberTokenSummary(year?: number): Promise<MemberTokenSummary[]> {
+    let query = this.supabase.supabase.from('member_tokens').select(`
         member_id,
         statut,
         montant,
         member:members!member_id (nom, prenom, im)
       `);
+
+    if (year !== undefined) {
+      query = query
+        .gte('date_attribution', `${year}-01-01`)
+        .lt('date_attribution', `${year + 1}-01-01`);
+    }
+
+    const { data, error } = await query;
 
     if (error) throw error;
 

@@ -89,7 +89,7 @@ export class PublicContributionsComponent implements OnInit {
     try {
       const membres = await this.supabase.getMembers();
       const contributions = await this.supabase.getContributionsByYear(this.anneeSelectionnee);
-      const tokenSummaries = await this.tokenService.getMemberTokenSummary();
+      const tokenSummaries = await this.tokenService.getMemberTokenSummary(this.anneeSelectionnee);
       const tokenAmountsByMember = await this.tokenService.getPaidTokenAmountsByYear(
         this.anneeSelectionnee,
       );
